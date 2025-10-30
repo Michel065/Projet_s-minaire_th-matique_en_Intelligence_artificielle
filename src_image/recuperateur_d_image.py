@@ -1,9 +1,11 @@
 import requests, re, os
+from PIL import Image
+from io import BytesIO
 from bs4 import BeautifulSoup
 import csv
 from tqdm import tqdm
 
-def download_imdb_poster_from_imdb(imdb_url: str, out_path: str = "test.jpg"):
+def download_imdb_poster_from_imdb(imdb_url: str, out_path: str = "test.jpg",format_:str="182x268"):
     """
     fonction empruntée à internet, non créée,
     qui permet de télécharger des images depuis le site IMDb
@@ -32,10 +34,18 @@ def download_imdb_poster_from_imdb(imdb_url: str, out_path: str = "test.jpg"):
     img = requests.get(img_url, headers=headers, timeout=30)
     img.raise_for_status()
 
+
+    image = Image.open(BytesIO(img.content))
+    if format_:
+        try:
+            largeur, hauteur = map(int, format_.lower().split("x"))
+            image = image.resize((largeur, hauteur), Image.Resampling.LANCZOS)
+        except Exception as e:
+            raise ValueError(f"Format invalide '{format_}' : {e}")
+
     ext = os.path.splitext(img_url.split("?")[0])[1] or ".jpg"
     out_path = out_path if out_path.endswith(ext) else out_path + ext
-    with open(out_path, "wb") as f:
-        f.write(img.content)
+    image.save(out_path)
     return out_path
 
 
@@ -61,8 +71,10 @@ def corriges_lurl(url_page="http://www.imdb.com/title/tt114709", print_=False):
     code = url_page.split("/")[-1]
     code_sans_t = code[2:]
     new_url = "http://www.imdb.com/fr/title/tt0" + code_sans_t
-    return new_url
+    return new_url    
 
+
+#download_imdb_poster_from_imdb(corriges_lurl())
 
 def main():
     """
@@ -75,7 +87,7 @@ def main():
     if not os.path.exists(sortie_image):
         os.mkdir(sortie_image)
     
-    depuis_le_site = False
+    depuis_le_site = True
     x = 0
    
     liste_des_erreur=[]
@@ -85,12 +97,12 @@ def main():
         
         print("Posters à télécharger:",len(reader))
         for ligne in tqdm(reader, desc="Téléchargement des posters", ncols=80, colour="cyan"):
-            x += 1
             code_poster = ligne["imdbId"]
             nom_poster = sortie_image + code_poster + ".jpg"
             
             if os.path.exists(nom_poster):
                 continue
+            x+=1
             
             try:
                 if depuis_le_site:
@@ -102,7 +114,9 @@ def main():
             except:
                 liste_des_erreur.append(nom_poster)
 
+    print("")
     print(x, " posters téléchargé.")
+    print(liste_des_erreur)
 
 
 main()
