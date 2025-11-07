@@ -1,0 +1,10 @@
+liste des genres: 
+['Animation', 'Adventure', 'Comedy',
+ 'Action', 'Family', 'Romance', 'Drama',
+  'Crime', 'Thriller', 'Fantasy', 'Horror', 
+  'Biography', 'History', 'Mystery', 'Sci-Fi', 
+  'War', 'Sport', 'Music', 'Documentary', 'Musical', 
+  'Western', 'Short', 'Film-Noir', 'Talk-Show', 
+  'News', 'Adult', 'Reality-TV', 'Game-Show'] 
+
+soit 28 themes 
