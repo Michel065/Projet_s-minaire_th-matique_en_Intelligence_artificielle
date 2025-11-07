@@ -77,10 +77,6 @@ def corriges_lurl(url_page="http://www.imdb.com/title/tt114709", print_=False):
 #download_imdb_poster_from_imdb(corriges_lurl())
 
 def main():
-    """
-    récupère toutes les images de la liste MovieGenre.csv
-    et les stocke dans MoviePosters
-    """
     source_d_info = "./MovieGenre.csv"
     sortie_image = "./MoviePosters/"
     
@@ -88,35 +84,47 @@ def main():
         os.mkdir(sortie_image)
     
     depuis_le_site = True
-    x = 0
-   
-    liste_des_erreur=[]
+    nb_lignes_traitees = 0     # tout ce qu’on a lu
+    nb_download_tentes = 0     # ce qu’on a vraiment essayé de dl
+    nb_erreurs = 0
+    liste_des_erreur = []
     
     with open(source_d_info, newline='', encoding='latin1') as f:
         reader = list(csv.DictReader(f))
-        
-        print("Posters à télécharger:",len(reader))
-        for ligne in tqdm(reader, desc="Téléchargement des posters", ncols=80, colour="cyan"):
-            code_poster = ligne["imdbId"]
-            nom_poster = sortie_image + code_poster + ".jpg"
-            
-            if os.path.exists(nom_poster):
-                continue
-            x+=1
-            
-            try:
-                if depuis_le_site:
-                    imdb_url = corriges_lurl(ligne["Imdb Link"])
-                    download_imdb_poster_from_imdb(imdb_url, nom_poster)
-                else:
-                    if telecharger_poster_from_link(ligne["Poster"], nom_poster):
-                        raise RuntimeError("Erreur")
-            except:
-                liste_des_erreur.append(nom_poster)
+        with tqdm(total=len(reader), ncols=90, colour="cyan") as pbar:
+            for ligne in reader:
+                nb_lignes_traitees += 1
+                code_poster = ligne["imdbId"]
+                nom_poster = sortie_image + code_poster + ".jpg"
 
-    print("")
-    print(x, " posters téléchargé.")
-    print(liste_des_erreur)
+                if os.path.exists(nom_poster):
+                    # on avance la barre quand même
+                    pbar.set_description(f"Traités: {nb_lignes_traitees} | DL: {nb_download_tentes} | Err: {nb_erreurs}")
+                    pbar.update(1)
+                    continue
 
+                nb_download_tentes += 1
+
+                try:
+                    if depuis_le_site:
+                        imdb_url = corriges_lurl(ligne["Imdb Link"])
+                        download_imdb_poster_from_imdb(imdb_url, nom_poster)
+                    else:
+                        if telecharger_poster_from_link(ligne["Poster"], nom_poster):
+                            raise RuntimeError("Erreur")
+                except:
+                    nb_erreurs += 1
+                    liste_des_erreur.append(nom_poster)
+
+                pbar.set_description(
+                    f"Traités: {nb_lignes_traitees} | DL: {nb_download_tentes} | Err: {nb_erreurs}"
+                )
+                pbar.update(1)
+
+    print()
+    print(f"{nb_lignes_traitees} lignes lues.")
+    print(f"{nb_download_tentes - nb_erreurs} posters téléchargés.")
+    print(f"{nb_erreurs} erreurs.")
+    # print(liste_des_erreur)
 
 main()
