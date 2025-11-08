@@ -1,7 +1,13 @@
 from tensorflow import keras
 from tensorflow.keras import layers
 
-def build_model(shape_poster=(182,268,3), classes_y=28):
+def build_model(param_model=((182,268,3),28)):
+    """
+    notre model
+    """
+    shape_poster=param_model[0]
+    classes_y=param_model[1]
+    
     def Conv2D_faux_filtre_5x5(x, nbr_filtre,taille_filtre=3):
         x = layers.Conv2D(nbr_filtre, taille_filtre, padding="same", use_bias=False)(x)
         x = layers.BatchNormalization()(x)
@@ -31,8 +37,9 @@ def build_model(shape_poster=(182,268,3), classes_y=28):
 
     x = layers.Dense(512, activation="relu")(x)
     x = layers.Dropout(0.4)(x)
-    
-    outputs = layers.Dense(classes_y, activation="softmax")(x)
+
+    outputs = layers.Dense(classes_y, activation="sigmoid", dtype="float32")(x)
+
 
     model = keras.Model(inputs, outputs, name="model_poster_vers_theme_cnn")
     return model

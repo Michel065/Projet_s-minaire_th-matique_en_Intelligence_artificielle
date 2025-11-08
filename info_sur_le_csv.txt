@@ -8,3 +8,34 @@ liste des genres:
   'News', 'Adult', 'Reality-TV', 'Game-Show'] 
 
 soit 28 themes 
+
+
+Répartition des thèmes:
+ - Drama               : 23.350% (16437)
+ - Comedy              : 14.622% (10293)
+ - Romance             : 7.249% (5103)
+ - Action              : 6.349% (4469)
+ - Crime               : 6.084% (4283)
+ - Thriller            : 5.766% (4059)
+ - Documentary         : 4.668% (3286)
+ - Horror              : 4.610% (3245)
+ - Adventure           : 4.465% (3143)
+ - Mystery             : 2.729% (1921)
+ - Family              : 2.505% (1763)
+ - Biography           : 2.465% (1735)
+ - Sci-Fi              : 2.402% (1691)
+ - Fantasy             : 2.372% (1670)
+ - Animation           : 2.016% (1419)
+ - History             : 1.681% (1183)
+ - Music               : 1.531% (1078)
+ - War                 : 1.276% (898)
+ - Short               : 1.051% (740)
+ - Sport               : 0.858% (604)
+ - Musical             : 0.841% (592)
+ - Western             : 0.685% (482)
+ - Film-Noir           : 0.305% (215)
+ - News                : 0.105% (74)
+ - Adult               : 0.007% (5)
+ - Talk-Show           : 0.004% (3)
+ - Reality-TV          : 0.001% (1)
+ - Game-Show           : 0.001% (1)
