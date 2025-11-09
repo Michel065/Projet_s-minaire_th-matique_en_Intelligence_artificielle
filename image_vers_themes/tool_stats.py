@@ -82,3 +82,17 @@ def creation_courbe_accuracy_loss_from_hitory(history):
     plt.savefig("courbe_loss.png", bbox_inches="tight")
     plt.close()
     print("Courbes sauvegardées : courbe_accuracy.png, courbe_loss.png")
+
+def print_nbr_param_model(model):
+    liste=list([(v.shape) for v in model.trainable_weights])
+    nbr_param=0
+    for elt in liste:
+        tmp=1
+        for i in elt:
+            tmp*=i
+        nbr_param+=tmp
+    print("nbr de param possible", nbr_param)
+    
+
+def print_summary_model(model):
+    model.summary()

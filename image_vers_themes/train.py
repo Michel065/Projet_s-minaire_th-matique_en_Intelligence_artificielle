@@ -52,6 +52,11 @@ def train_model(model,dataset_train,dataset_val,EPOCHS = 50):
 
 
 def evalution_du_model(model,dataset_test):
-    test_loss, test_acc = model.evaluate(dataset_test)
-    print(f"Test accuracy = {test_acc*100:.2f}% | Test loss = {test_loss:.4f}")
-    return test_loss, test_acc
+    results = model.evaluate(dataset_test, return_dict=True)
+    print(f"Résultat apres évaluation:")
+    for k, v in results.items():
+        print(f"{k}: {v:.4f}")
+    return results
+
+def load_model(nom_model="./best_model.keras"):
+    return tf.keras.models.load_model(nom_model, compile=True)
