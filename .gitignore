@@ -1,1 +1,6 @@
-/MoviePosters
+/MoviePosters.venv/
+__pycache__/
+*.faiss
+*.parquet
+themes_vers_images/data/images/
+.DS_Store
