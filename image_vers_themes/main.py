@@ -33,7 +33,7 @@ def boucle_entrainement_complet(nbr_epoch=50):
     t.evalution_du_model(model,dataset_test)
 
     print("Génére les courbe d'apprentissage.")
-    ts.creation_courbe_accuracy_loss_from_hitory(history)
+    ts.creation_courbe_accuracy_loss_from_hitory(history.history)
 
 def boucle_entrainement_load():
     print("Extraction des couples (lien, thèmes) + liste des genres.")
@@ -50,9 +50,9 @@ def boucle_entrainement_load():
     print("Évaluation du modèle.")
     t.evalution_du_model(model, dataset_test)
 
-boucle_entrainement_load()
-
-
 def secondaire():
     model = bm.build_model()
     ts.print_summary_model(model)
+
+
+boucle_entrainement_complet()
