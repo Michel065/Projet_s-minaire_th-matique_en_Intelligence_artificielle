@@ -1,8 +1,11 @@
 import sys,os, csv
+import json
 import tensorflow as tf
 import numpy as np
 from iterstrat.ml_stratifiers import MultilabelStratifiedShuffleSplit
-import tool_stats as sd
+
+#ca c'est pour l'augmentation de data
+from PIL import Image, ImageOps, ImageEnhance, ImageFilter
 
 AUTOTUNE = tf.data.AUTOTUNE
 
@@ -108,20 +111,50 @@ def creation_dataset(X,Y,batch_size=64):
     ds = ds.batch(batch_size).prefetch(AUTOTUNE)
     return ds
 
-def test():
-    csv_path = "../MovieGenre.csv"
-    img_dir  = "../MoviePosters/"
+def save_json(path, dico):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(dico,f,ensure_ascii=False,separators=(",", ":"),indent=None)
 
-    liste_liens_image, liste_themes_par_image,liste_des_genres = construction_tuple_image_themes(csv_path, img_dir)
-    #print(liste_des_genres, len(liste_des_genres))
-    #sd.calculs_repartition_themes(liste_themes_par_image)
-    Y = convertisseur_themes_en_vecteur(liste_themes_par_image,liste_des_genres)
-    #print("sortie Y ",Y[10000])
-    #print("liste des genres:",liste_des_genres)
-    #print("conparatifs:",liste_themes_par_image[10000])
+def load_json(path):
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-    (train_X_liens, train_Y), (val_X_liens, val_Y), (test_X_liens, test_Y)=partage_les_datas(liste_liens_image,Y)
-    #test des résultat
-    #sd.calculs_repartition_themes_Y(train_Y,liste_des_genres,"répartition pour le train")
-    #sd.calculs_repartition_themes_Y(val_Y,liste_des_genres,"répartition pour le val")
-    #sd.calculs_repartition_themes_Y(test_Y,liste_des_genres)
+def generate_poster_with_transformation(lien_origine_poster, y_original, num_variante=1, img_dir_boost="../MoviePosters_boost"):
+    """
+    Génère une variante du poster selon num_variante, l'enregistre dans img_dir_boost
+    et retourne (new_path, new_y).
+
+    Pour l'instant new_y = y_original, mais on pourra plus tard "tricher" en modifiant
+    les thèmes trop fréquents ici.
+    """
+    if not os.path.exists(lien_origine_poster):
+        raise FileNotFoundError(f"Poster introuvable : {lien_origine_poster}")
+
+    os.makedirs(img_dir_boost, exist_ok=True)
+
+    img = Image.open(lien_origine_poster).convert("RGB")
+
+    def t_flip_h(im):  return ImageOps.mirror(im)
+    def t_color(im):   return ImageEnhance.Color(im).enhance(1.3)
+    def t_contrast(im):return ImageEnhance.Contrast(im).enhance(1.2)
+    def t_sharpen(im): return im.filter(ImageFilter.UnsharpMask(radius=2, percent=150, threshold=3))
+
+    transforms = [t_flip_h, t_color, t_contrast,t_sharpen]
+
+    # On utilise num_variante comme masque binaire
+    mask = num_variante
+    if mask == 0:
+        raise ValueError("Mask à 0, c'est louche !!")
+
+    for i, transfo in enumerate(transforms):
+        if mask & (1 << i):
+            img = transfo(img)
+
+    base = os.path.splitext(os.path.basename(lien_origine_poster))[0]
+    new_name = f"{base}_boost_{num_variante}.jpg"
+    new_path = os.path.join(img_dir_boost, new_name)
+
+    img.save(new_path, format="JPEG", quality=95)
+    new_y = y_original.copy()
+
+    return new_path, new_y
