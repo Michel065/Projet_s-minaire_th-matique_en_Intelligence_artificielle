@@ -227,23 +227,26 @@ def construire_data_boost(source=json_filter_path,img_dir_boost=img_dir_boost):
     5. Affiche la comparaison avant/après
     """
     print("_________CONSTRUCTION DATA BOOST __________")
-
-    if os.path.exists(img_dir_boost):
-       print("Fichier de boost deja existant,on annule")
-       return 
     
     if not os.path.exists(source):
         print(f"ERREUR : Le fichier '{source}' n'existe pas. creation ...")
         construction_filter_json()
+
     data = bd.load_json(source)
     vect_base = np.asarray(data["vecteur_themes_par_image"])
     liste_des_genres = data["liste_des_genres"]
     repart_avant = ts.calculs_repartition_themes_vecteur(vect_base,liste_des_genres,print_data=False,titre="Répartition AVANT boost :")
-    print("\nExtraction des thèmes rares…")
-    extraction_theme_rare(source)
-    print("\nGénération des images boostées…")
-    boost_theme_rare(source)
-    repart_apres = calculs_repartition_with_boost(source)
+    
+    
+    if os.path.exists(img_dir_boost):
+       print("Fichier de boost deja existant,on annule")
+    else:   
+        print("\nExtraction des thèmes rares…")
+        extraction_theme_rare(source)
+        print("\nGénération des images boostées…")
+        boost_theme_rare(source)
+
+    repart_apres = calculs_repartition_with_boost(source,False)
     ts.comparaison_repartition(repart_avant, repart_apres, liste_des_genres)
     print("_____________________________________")
 

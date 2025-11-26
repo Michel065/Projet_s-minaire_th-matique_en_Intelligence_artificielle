@@ -70,4 +70,35 @@ Répartition des thèmes (avec boost)
  - Reality-TV          :  0.016% (16)
  - Game-Show           :  0.016% (16)
 
- 
+ ______ COMPARAISON AVANT / APRÈS BOOST ________
+Genre                   Avant %    Après %     Diff %
+Animation                 2.016      1.964     -0.052
+Adventure                 4.465      3.635     -0.830
+Comedy                   14.622     12.307     -2.315
+Action                    6.349      4.882     -1.466
+Family                    2.505      2.188     -0.317
+Romance                   7.249      6.122     -1.128
+Drama                    23.350     21.478     -1.872
+Crime                     6.084      5.873     -0.211
+Thriller                  5.766      4.374     -1.392
+Fantasy                   2.372      1.867     -0.505
+Horror                    4.610      3.382     -1.228
+Biography                 2.465      2.744      0.280
+History                   1.681      2.741      1.061
+Mystery                   2.729      2.165     -0.564
+Sci-Fi                    2.402      1.747     -0.656
+War                       1.276      2.295      1.019
+Sport                     0.858      2.163      1.305
+Music                     1.531      2.263      0.732
+Documentary               4.668      5.867      1.199
+Musical                   0.841      2.186      1.345
+Western                   0.685      2.152      1.467
+Short                     1.051      2.194      1.143
+Film-Noir                 0.305      2.102      1.796
+Talk-Show                 0.004      0.047      0.042
+News                      0.105      1.153      1.048
+Adult                     0.007      0.078      0.071
+Reality-TV                0.001      0.016      0.014
+Game-Show                 0.001      0.016      0.014
+
+_____________________________________________
