@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-
 import build_data as bd
 
 
@@ -17,7 +16,6 @@ def calculs_repartition_themes(liste_themes_par_image, liste_des_genres, titre="
     repartition = calculs_repartition_themes_vecteur(Y, liste_des_genres,print_data=print_data, titre=titre)
     return repartition
 
-
 def calculs_repartition_themes_vecteur(vecteurs, liste_des_genres, print_data=False,titre=""):
     """
     Calcule et (optionnellement) affiche la répartition (%) de chaque thème
@@ -25,10 +23,21 @@ def calculs_repartition_themes_vecteur(vecteurs, liste_des_genres, print_data=Fa
 
     Retourne un dict : { theme: [pourcentage, count], ... }
     """
+    #Vérif le nombre de dimensions
     vecteurs = np.asarray(vecteurs)
-    if vecteurs.ndim != 2 or vecteurs.shape[1] != len(liste_des_genres):
-        raise ValueError("Dimensions incompatibles entre Y et liste_des_genres, c'est louche !!")
+    if vecteurs.ndim != 2:
+        raise ValueError(
+            f"Dimensions incompatibles : vecteurs.ndim={vecteurs.ndim}, "
+            f"vecteurs.shape={vecteurs.shape}, len(liste_des_genres)={len(liste_des_genres)}"
+        )
 
+    # Vérif le nombre de colonnes
+    if vecteurs.shape[1] != len(liste_des_genres):
+        raise ValueError(
+            f"Dimensions incompatibles entre Y({vecteurs.shape[1]}) "
+            f"et liste_des_genres({len(liste_des_genres)}), c'est louche !!"
+        )
+    
     # On compte le nombre d'occurrences par thème
     counts = vecteurs.sum(axis=0)
     total = counts.sum()
@@ -116,20 +125,39 @@ def print_nbr_param_model(model):
 def print_summary_model(model):
     model.summary()
 
-def comparaison_repartition(repart_avant, repart_apres, liste_des_genres):
+def comparaison_repartition(repart_avant, repart_apres, liste_des_genres,titre="Train"):
     """
     Affiche genre par genre :
     - pourcentage avant
     - pourcentage après
     - différence (+/-)
     """
-    print("\n______ COMPARAISON AVANT / APRÈS BOOST ________")
+    print(f"\n______ COMPARAISON AVANT / APRÈS BOOST {titre} ________")
     print(f"{'Genre':<20} {'Avant %':>10} {'Après %':>10} {'Diff %':>10}")
 
+    lignes = []
     for genre in liste_des_genres:
         if genre in repart_avant and genre in repart_apres:
             av = repart_avant[genre][0]
             ap = repart_apres[genre][0]
             diff = ap - av
-            print(f"{genre:<20} {av:10.3f} {ap:10.3f} {diff:10.3f}")
+            lignes.append((genre, av, ap, diff))
+
+    lignes.sort(key=lambda x: x[2], reverse=True) 
+    for genre, av, ap, diff in lignes:
+        print(f"{genre:<20} {av:10.3f} {ap:10.3f} {diff:+10.3f}")
+
     print("\n_____________________________________________")
+
+def calculs_repartition_themes_from_data_filter(source="../data_filtrer.json",source_y="Y_full", titre="", print_data=False):
+    """
+    Calcule la répartition % de chaque thème à partir de la liste de thèmes par image mais a partir du json.
+
+    Retourne un dict : { theme: [pourcentage, count], ... }
+    """
+    data = bd.load_json(source)
+    Y = data[source_y]
+    liste_des_genres = data["liste_des_genres"]
+    repartition = calculs_repartition_themes_vecteur(Y, liste_des_genres,print_data=print_data, titre=titre)
+    return repartition
+

@@ -1,0 +1,211 @@
+/* Reset léger */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #101010;
+    color: #f5f5f5;
+}
+
+/* Mise en page globale */
+.page {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    gap: 8px;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #181818;
+    border-radius: 8px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.4);
+}
+
+.header h1 {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.subtitle {
+    font-size: 12px;
+    color: #aaaaaa;
+}
+
+.header-right {
+    display: flex;
+    gap: 8px;
+}
+
+.mode-btn {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #444;
+    background: #222;
+    color: #ddd;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.mode-btn--active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: #fff;
+}
+
+.mode-btn--disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Dashboard grid */
+.dashboard {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 10px;
+    min-height: 0;
+}
+
+/* Cards */
+.card {
+    background: #181818;
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.35);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+}
+
+.card h2 {
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+/* Champs */
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 12px;
+}
+
+.field-row {
+    display: flex;
+    gap: 8px;
+}
+
+.field-row .field {
+    flex: 1;
+}
+
+input[type="text"],
+input[type="number"] {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 4px 6px;
+    color: #f5f5f5;
+    font-size: 12px;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+/* Boutons */
+.primary-btn,
+.secondary-btn {
+    border-radius: 4px;
+    border: none;
+    padding: 6px 8px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.primary-btn {
+    background: #3b82f6;
+    color: #fff;
+}
+
+.secondary-btn {
+    background: #333;
+    color: #eee;
+}
+
+.primary-btn:hover {
+    background: #2563eb;
+}
+
+.secondary-btn:hover {
+    background: #444;
+}
+
+.btn-row {
+    display: flex;
+    gap: 6px;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+/* Statuts & métriques */
+.status {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.metrics p {
+    font-size: 12px;
+}
+
+/* Tableau détail par genre */
+.table-wrapper {
+    flex: 1;
+    overflow: auto;
+    border-radius: 4px;
+    border: 1px solid #333;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+thead {
+    background: #222;
+}
+
+th, td {
+    padding: 4px 6px;
+    border-bottom: 1px solid #333;
+    text-align: right;
+}
+
+th:first-child,
+td:first-child {
+    text-align: left;
+}

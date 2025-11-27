@@ -1,0 +1,298 @@
+#fichier qui va servir a rassembler les fonction principale du code soit celle qui le param ou le contruise
+import build_data as bd
+import build_model as bm
+import tool_stats as ts
+import extend_data as ed
+import train as t
+import numpy as np
+import os,shutil
+
+def construction_filter_json(csv_path="../MovieGenre.csv", img_dir= "../MoviePosters/",output_source="../data_filtrer.json"):
+    print("_____ Construction du CSV filtré _____")
+    print("Extraction des couples (liens_image, liste_themes) + récupération des thèmes.")
+    train_X, liste_themes_par_image, liste_des_genres = bd.construction_tuple_image_themes(csv_path, img_dir)
+
+    print("Conversion des liste_themes en vecteurs multi-hot.")
+    train_Y = bd.convertisseur_themes_en_vecteur(liste_themes_par_image, liste_des_genres)
+    filter_data = {
+        "liste_des_genres": liste_des_genres,
+        "X_full": train_X,
+        "Y_full": train_Y,
+        "train_X": [],
+        "train_Y": [],
+        "val_X":   [],
+        "val_Y":   [],
+        "test_X":   [],
+        "test_Y":   [],
+        "train_X_boost":   [],
+        "train_Y_boost":   [],
+        "liste_theme_rare":   [],
+        "seuils_optimaux":   [],
+    }
+    print("Sauvegarde du json filtré…")
+    bd.save_json(output_source, filter_data )
+    print("____________________________________\n")
+
+def extraction_theme_rare(source="../data_filtrer.json", seuil=2,aff=False):  # 2% = rare
+    print("_____ extraction_theme_rare _____")
+    data = bd.load_json(source)
+    liste_theme_rare = []
+    repartition = ts.calculs_repartition_themes_vecteur(data["Y_full"],data["liste_des_genres"],print_data=False)
+    for theme, stats in repartition.items():
+        pourcentage = stats[0]
+        if pourcentage < seuil:
+            liste_theme_rare.append((theme, pourcentage, stats[1]))
+    if(aff):
+        for (theme, st, co) in liste_theme_rare:
+            print(theme,":",st,"(",co,")")
+    print("Mise à jour du json filtré")
+    data["liste_theme_rare"]=liste_theme_rare
+    bd.save_json(source, data)
+    print("____________________________________\n")
+    return liste_theme_rare
+
+def construire_data_boost_train(source="../data_filtrer.json",img_dir_boost="../MoviePosters_boost"):
+    """
+    1. Vérifie si data_filter existe
+    2. Charge les données
+    3. Extrait les themes rares
+    4. Boost les images
+    5. Affiche la comparaison avant/après
+    """
+    print("_________CONSTRUCTION DATA BOOST __________")
+    
+    if not os.path.exists(source):
+        print(f"ERREUR : Le fichier '{source}' n'existe pas. on doit le créer avant!!")
+        return
+
+    data = bd.load_json(source)
+    vect_base = np.asarray(data["train_Y"])
+    liste_des_genres = data["liste_des_genres"]
+    repart_avant = ts.calculs_repartition_themes_vecteur(vect_base,liste_des_genres,print_data=False,titre="Répartition train_X AVANT boost :")
+    
+    if os.path.exists(img_dir_boost):
+       print("Fichier de boost deja existant,on annule la création")
+    else: 
+        print("\nGénération des images boostées…")
+        ed.boost_theme_rare_de_train(source)
+
+    repart_apres = ed.calculs_repartition_with_boost(source,False)
+    ts.comparaison_repartition(repart_avant, repart_apres, liste_des_genres)
+    print("_____________________________________\n")
+
+def fusionner_genres_trop_rares_en_other(source="../data_filtrer.json",seuil_min_count=100,nom_other="Other"):
+    """
+    Charge le data_filtrer.json, repère les genres trop rares (count < seuil_min_count),
+    et prépare la fusion de ces genres dans une classe 'Other'.
+
+    - Met à jour:
+        - data["liste_des_genres"]
+        - data["Y_full"]
+        - data["liste_theme_rare"]
+    """
+    print("_____ fusionner_genres_rares_en_other _____")
+
+    data = bd.load_json(source)
+
+    if "liste_des_genres" not in data or "Y_full" not in data or "liste_theme_rare" not in data :
+        print("ERREUR : 'liste_des_genres' ou 'Y_full' ou 'liste_theme_rare' manquants dans le json.")
+        print("Impossible de fusionner les genres trop rares.")
+        print("___________________________________________\n")
+        return
+
+    ancienne_liste = data["liste_des_genres"]
+    Y_full = np.asarray(data["Y_full"])
+    liste_theme_rare = data["liste_theme_rare"]
+
+    # Vérification
+    if Y_full.ndim != 2 or Y_full.shape[1] != len(ancienne_liste):
+        print("ERREUR : Dimensions de vecteur_themes_par_image incompatibles avec liste_des_genres.")
+        print(f" - Y_full.shape = {Y_full.shape}")
+        print(f" - len(liste_des_genres) = {len(ancienne_liste)}")
+        print("___________________________________________\n")
+        return
+
+    # Genres trop rares à fusionner dans Other
+    themes_trop_rares = [theme for (theme, _,count) in liste_theme_rare if count < seuil_min_count]
+    themes_trop_rares_data = [(p,c) for (t, p,c) in liste_theme_rare if t in themes_trop_rares]
+
+    if len(themes_trop_rares) == 0:
+        print(f"Aucun genre avec count < {seuil_min_count}. Rien à fusionner.")
+        print("___________________________________________\n")
+        return
+
+    print(f"Genres fusionnés en '{nom_other}' (count < {seuil_min_count}) : {themes_trop_rares}")
+
+    # Construction du mask 
+    # True, theme sera mappé vers 'Other'
+    mask_genres_other = []
+    for genre in ancienne_liste:
+        mask_genres_other.append(genre in themes_trop_rares)
+
+    nouvelle_liste = [g for g in ancienne_liste if g not in themes_trop_rares]
+    if nom_other not in nouvelle_liste:
+        nouvelle_liste.append(nom_other)
+
+    New_Y_full = bd.reformate_vecteur_themes_par_image(Y_full,mask_genres_other)
+
+    
+    new_liste_theme_rare = [elt for elt in liste_theme_rare if elt[0] not in themes_trop_rares]
+
+    count_other = sum(c for (_,c) in themes_trop_rares_data)
+    if (nom_other not in [t for (t,_,_) in new_liste_theme_rare]) and count_other > 0:
+        pct_other = sum(p for (p,_) in themes_trop_rares_data)
+        new_liste_theme_rare.append((nom_other,pct_other,count_other))
+    
+    data["Y_full"] = New_Y_full.tolist()
+    data["liste_des_genres"] = nouvelle_liste
+    data["liste_theme_rare"] = new_liste_theme_rare
+
+    bd.save_json(source, data)
+
+    print(f"Nouvelle liste des genres ({len(nouvelle_liste)} genres) sauvegardée.")
+    print("_______________________\n")
+
+def split_train_eval_test(source="../data_filtrer.json", ratio_val=0.15, ratio_test=0.15):
+    """
+    Split X_full / Y_full en ensembles :
+    - train
+    - val
+    - test
+
+    Les résultats sont sauvegardés dans le JSON :
+    - train_X, train_Y
+    - val_X, val_Y
+    - test_X, test_Y
+    """
+
+    print("_________split_train_eval_test__________")
+    data = bd.load_json(source)
+
+    if "X_full" not in data or "Y_full" not in data:
+        print("ERREUR : X_full ou Y_full non trouvés dans le JSON.")
+        print("_________________________________________\n")
+        return
+
+    (train_X, train_Y), (val_X, val_Y), (test_X, test_Y)=bd.partage_les_datas(data["X_full"],data["Y_full"],ratio_val,ratio_test)
+    
+    data["train_X"] = train_X
+    data["train_Y"] = train_Y.tolist()
+
+    data["val_X"] = val_X
+    data["val_Y"] = val_Y.tolist()
+
+    data["test_X"] = test_X
+    data["test_Y"] = test_Y.tolist()
+
+    print(f"Répartition : train={len(train_X)}, val={len(val_X)}, test={len(test_X)}")
+    print("Mise à jour du json filtré")
+    bd.save_json(source, data)
+    print("_________________________________________\n")
+
+def clean(json_filter_path="../data_filtrer.json", img_dir_boost="../MoviePosters_boost"):
+    """
+    Supprime le fichier JSON et le dossier MoviePosters_boost 
+    """
+    print("_____ CLEAN _____")
+    
+    if os.path.exists(json_filter_path):
+        try:
+            os.remove(json_filter_path)
+            print(f"Fichier supprimé : {json_filter_path}")
+        except Exception as e:
+            print(f"Erreur suppression fichier json : {e}")
+    else:
+        print(f"Aucun fichier json à supprimer : {json_filter_path}")
+
+    if os.path.exists(img_dir_boost):
+        try:
+            shutil.rmtree(img_dir_boost)
+            print(f"Dossier supprimé : {img_dir_boost}")
+        except Exception as e:
+            print(f"Erreur suppression dossier boost : {e}")
+    else:
+        print(f"Aucun dossier boost à supprimer : {img_dir_boost}")
+
+    print("__________________\n")
+
+def generer_datasets(source="../data_filtrer.json", batch_size=64):
+    print("_____ génération des datasets TF _____")
+
+    data = bd.load_json(source)
+
+    train_X = data["train_X"]
+    train_Y = np.asarray(data["train_Y"])
+
+    if "train_X_boost" in data and "train_Y_boost" in data:
+        train_X = train_X + data["train_X_boost"]
+        train_Y = np.concatenate([train_Y, np.asarray(data["train_Y_boost"])], axis=0)
+
+    val_X   = data["val_X"]
+    val_Y   = np.asarray(data["val_Y"])
+    test_X  = data["test_X"]
+    test_Y  = np.asarray(data["test_Y"])
+
+    dataset_train = bd.creation_dataset(train_X, train_Y, batch_size=batch_size, shuffle=True)
+    dataset_val   = bd.creation_dataset(val_X,   val_Y,   batch_size=batch_size, shuffle=False)
+    dataset_test  = bd.creation_dataset(test_X,  test_Y,  batch_size=batch_size, shuffle=False)
+    print("_______________________________\n")
+    return dataset_train, dataset_val, dataset_test
+
+def entrainement_complet(source="../data_filtrer.json",EPOCHS=50, batch_size=64):
+    """
+    Pipeline d'entraînement complet :
+    - Vérifie la présence du fichier data_filter
+    - Vérifie la présence des clés nécessaires (train/val/test)
+    - Construit les datasets
+    - Construit et compile le modèle
+    - Entraîne le modèle
+    - Calcule les seuils optimaux via la validation
+    - Évalue le modèle sur le test avec seuils
+
+    Retourne :
+        - model entraîné
+        - seuils par genre
+        - stats d'évaluation finale
+    """
+    print("___________ ENTRAINEMENT COMPLET ___________")
+    if not os.path.exists(source):
+        raise FileNotFoundError(f"ERREUR : Le fichier '{source}' est introuvable. ")
+
+    data = bd.load_json(source)
+
+    # Verification
+    required_keys = [
+        "liste_des_genres",
+        "train_X", "train_Y",
+        "val_X",   "val_Y",
+        "test_X",  "test_Y"
+    ]
+    for k in required_keys:
+        if k not in data:
+            raise ValueError(f"ERREUR : La clé '{k}' manque dans {source}. ")
+
+    liste_des_genres = data["liste_des_genres"]
+
+    dataset_train, dataset_val, dataset_test  = generer_datasets(source,batch_size)
+
+    param_model = ((182,268,3), len(liste_des_genres))
+    model = t.define_startegie(bm.build_model, param_model)
+
+    print("Modèle compilé")
+
+    history = t.train_model(model, dataset_train, dataset_val,EPOCHS)
+    print("Entraînement terminé")
+
+    seuils = t.finds_seuil_pour_chaque_theme(model, dataset_val, liste_des_genres)
+    print("Seuils optimaux déterminés")
+
+    resume_global, stats_par_genre = t.evalution_du_model_avec_seuils(model, dataset_test, liste_des_genres, seuils)
+    print("Évaluation finale terminée")
+    
+    data["seuils_optimaux"]=seuils
+    bd.save_json(source, data)
+    print("Mise à jour du json filtré")
+    
+    print("____________________________________________")
+
+    return model, seuils, stats_par_genre,resume_global, history

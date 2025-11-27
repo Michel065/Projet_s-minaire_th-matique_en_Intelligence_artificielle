@@ -65,7 +65,7 @@ def split_homogene(X, y, repartition=0.2, ):
     for train_idx, test_idx in msss.split(X, y):
         return X[train_idx], y[train_idx], X[test_idx], y[test_idx]
     
-def partage_les_datas(liste_liens_image=[], Y=[], ratio_val=0.15, ratio_test=0.15):
+def partage_les_datas(X_full=[], Y_full=[], ratio_val=0.15, ratio_test=0.15):
     """
     Fonction qui répartit les posters en ensembles d'entraînement, de validation et de test
     mais en gardant une répartition !!homogène!! des thèmes
@@ -79,18 +79,17 @@ def partage_les_datas(liste_liens_image=[], Y=[], ratio_val=0.15, ratio_test=0.1
     Returns:
         (train_X_liens, train_Y), (val_X_liens, val_Y), (test_X_liens, test_Y)
     """
-
-    X = np.array(liste_liens_image, dtype=object) #on convertie en array sinon MultilabelStratifiedShuffleSplit marche pas
-    Y = np.asarray(Y) #pareil
+    X = np.array(X_full, dtype=object) #on convertie en array sinon MultilabelStratifiedShuffleSplit marche pas
+    Y = np.asarray(Y_full) #pareil
 
     X_train, train_Y, X_temp, Y_temp = split_homogene(X.reshape(-1, 1), Y, repartition=(ratio_val + ratio_test))#ca .reshape(-1, 1) pour préciser qu'il y a une seul colone sinon ca marche pas aussi
     X_val, val_Y, X_test, test_Y = split_homogene(X_temp, Y_temp, repartition=(1 - ratio_val / (ratio_val + ratio_test)))
 
-    train_X_liens = list(np.asarray(X_train).reshape(-1))
-    val_X_liens   = list(np.asarray(X_val).reshape(-1))
-    test_X_liens  = list(np.asarray(X_test).reshape(-1))    
+    train_X = list(np.asarray(X_train).reshape(-1))
+    val_X   = list(np.asarray(X_val).reshape(-1))
+    test_X  = list(np.asarray(X_test).reshape(-1))    
 
-    return (train_X_liens, train_Y), (val_X_liens, val_Y), (test_X_liens, test_Y)
+    return (train_X, train_Y), (val_X, val_Y), (test_X, test_Y)
 
 def load_poster_pour_map(liens_poster,sortie_y):
     """
@@ -102,13 +101,20 @@ def load_poster_pour_map(liens_poster,sortie_y):
     img = tf.image.convert_image_dtype(img, tf.float32)
     return img, sortie_y
 
-def creation_dataset(X,Y,batch_size=64):
+def creation_dataset(X,Y,batch_size=64, shuffle=False, shuffle_buffer=10000):
     """
     regroupe X et Y dans un dataset et definie le batch
     """
     ds = tf.data.Dataset.from_tensor_slices((X, Y))
+
+    if shuffle:
+        # on limite le buffer au nombre d'éléments pour éviter de tuer la RAM si on a beaucoup de data
+        buffer_size = min(shuffle_buffer, len(X))
+        ds = ds.shuffle(buffer_size=buffer_size)
+
     ds = ds.map(load_poster_pour_map, num_parallel_calls=AUTOTUNE)
-    ds = ds.batch(batch_size).prefetch(AUTOTUNE)
+    ds = ds.batch(batch_size)
+    ds = ds.prefetch(AUTOTUNE)
     return ds
 
 def save_json(path, dico):
@@ -158,3 +164,36 @@ def generate_poster_with_transformation(lien_origine_poster, y_original, num_var
     new_y = y_original.copy()
 
     return new_path, new_y
+
+def reformate_vecteur_themes_par_image(Y_full, mask_genres_other):
+    """
+    Fusionne les genres masqués dans une seule colonne 'Other'.
+    - Y_full
+    - mask_genres_other
+
+    Retour :
+        New_Y :
+    """
+    Y_full = np.asarray(Y_full)
+    mask = np.asarray(mask_genres_other)
+
+    if Y_full.ndim != 2 or mask.ndim != 1:
+        raise ValueError("Dimensions invalides : Y_full doit être (N,K) et mask (K,)")
+
+    if Y_full.shape[1] != mask.shape[0]:
+        raise ValueError("Taille de mask incohérente avec Y_full.")
+
+    # Séparation des colonnes normales et masquées
+    cols_normales = np.where(~mask)[0]   # indices à conserver
+    cols_other    = np.where(mask)[0]    # indices à fusionner
+
+    # Extraction
+    Y_normales = Y_full[:, cols_normales]
+    Y_others   = Y_full[:, cols_other]
+
+    # Fusion des colonnes masquées
+    col_other = (Y_others.max(axis=1) if Y_others.shape[1] > 0 else np.zeros(Y_full.shape[0]))
+
+    # Construction de la nouvelle matrice
+    New_Y = np.concatenate([Y_normales, col_other.reshape(-1, 1)],axis=1)
+    return New_Y
