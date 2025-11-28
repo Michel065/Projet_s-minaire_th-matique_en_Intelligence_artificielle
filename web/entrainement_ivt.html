@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Image ==> Thèmes – Entraînement</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <script type="module" src="js/entrainement_ivt1.js"></script>
+    <script type="module" src="js/entrainement_ivt2.js"></script>
+    <script type="module" src="js/entrainement_ivt3.js"></script>
+    <script type="module" src="js/entrainement_ivt4.js"></script>
+    <script type="module" src="js/entrainement_ivt5.js"></script>
+
+</head>
+<body>
+<div class="page">
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-left">
+            <h1>Image ==> Thèmes</h1>
+            <p class="subtitle">Entraînement &amp; préparation des données</p>
+        </div>
+
+        <div class="header-right">
+            <a href="index.html" class="back-btn">Retour accueil</a>
+        </div>
+    </header>
+
+    <!-- DASHBOARD GRID -->
+    <main class="dashboard">
+
+        <!-- 1. Données d’entrée -->
+        <section class="card">
+            <h2>1. Données d’entrée</h2>
+            <div class="field">
+                <label for="csv-path">Chemin CSV</label>
+                <input id="csv-path" type="text" value="./MovieGenre.csv">
+            </div>
+            <div class="field">
+                <label for="img-dir">Dossier posters</label>
+                <input id="img-dir" type="text" value="./MoviePosters/">
+            </div>
+
+            <button class="primary-btn" id="btnBuildFilter">
+                Construire <code>data_filtrer.json</code>
+            </button>
+            <button id="btnCleanAll" class="button button-secondary">
+                Clean all
+            </button>
+
+            <p class="status log" id="log-data">
+                Statut : en attente…
+            </p>
+        </section>
+
+        <!-- 2. Thèmes rares & Other -->
+        <section class="card">
+            <h2>2. Thèmes rares &amp; classe « Other »</h2>
+
+            <div class="field-row">
+                <div class="field">
+                    <label for="seuil-rare-pct">Seuil "rare" (%)</label>
+                    <input
+                        id="seuil-rare-pct"
+                        type="number"
+                        value="2"
+                        min="0"
+                        step="0.5"
+                    >
+                </div>
+
+                <div class="field">
+                    <label for="min-count-other">Min. occurrences avant fusion</label>
+                    <input
+                        id="min-count-other"
+                        type="number"
+                        value="100"
+                        min="1"
+                        step="10"
+                    >
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="nom-other">Nom de la classe fusionnée</label>
+                <input
+                    id="nom-other"
+                    type="text"
+                    value="Other"
+                >
+            </div>
+
+            <div class="btn-row">
+                <button class="secondary-btn" id="btn-extract-rare">
+                    Calculer les thèmes rares
+                </button>
+                <button class="primary-btn" id="btn-fusion-other">
+                    Fusionner les thèmes rares en « Other »
+                </button>
+            </div>
+
+            <p class="status" id="status-rare">
+                Statut : thèmes rares non calculés.
+            </p>
+            <p class="status" id="list-rare">
+                Thèmes rares : (aucun pour l’instant).
+            </p>
+        </section>
+
+        <!-- 3. Split & Boost -->
+        <section class="card">
+            <h2>3. Split &amp; Augmentation</h2>
+
+            <div class="field-row">
+                <div class="field">
+                <label for="ratio-val">Val (%)</label>
+                <input id="ratio-val" type="number" value="15" min="0" max="50">
+                </div>
+                <div class="field">
+                <label for="ratio-test">Test (%)</label>
+                <input id="ratio-test" type="number" value="15" min="0" max="50">
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field">
+                <label for="max-var">Max variantes / image</label>
+                <input id="max-var" type="number" value="15" min="1" max="50">
+                </div>
+                <div class="field">
+                <label for="facteur-cible">Facteur cible</label>
+                <input id="facteur-cible" type="number" value="0.5" min="0.1" max="2" step="0.1">
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="img-dir-boost">Dossier d’augmentation:</label>
+                <input
+                id="img-dir-boost"
+                type="text"
+                value="./MoviePostersAugmentation/">
+            </div>
+
+            <div class="btn-row">
+                <button class="secondary-btn" id="btn-split">
+                Split Train / Val / Test
+                </button>
+                <button class="primary-btn" id="btn-boost">
+                Générer données supplémentaire pour train
+                </button>
+            </div>
+
+            <p class="status" id="status-split-boost">
+                Répartition : inconnue.
+            </p>
+        </section>
+
+        <!-- 4. Entraînement -->
+        <section class="card">
+            <h2>4. Entraînement</h2>
+
+            <div class="field-row">
+                <div class="field">
+                    <label for="epochs">Epochs</label>
+                    <input id="epochs" type="number" value="50" min="1" max="500">
+                </div>
+                <div class="field">
+                    <label for="batch-size">Batch size</label>
+                    <input id="batch-size" type="number" value="64" min="8" max="512" step="8">
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field">
+                    <label for="model-dir">Dossier de sauvegarde du modèle</label>
+                    <input id="model-dir" type="text" value="./resultat_pvt/">
+                </div>
+                <div class="field">
+                    <label for="model-name">Nom de base du modèle</label>
+                    <input id="model-name" type="text" value="model_pvt">
+                </div>
+            </div>
+
+            <div class="field checkbox-field">
+                <div class="field-row">
+                    <input id="use-boost" type="checkbox" checked>
+                    <label for="use-boost">Utiliser les données augmentées pour le train</label>
+                </div>
+            </div>
+
+            <button class="secondary-btn full-width" id="btn-gen-datasets">
+                Préparer les datasets (train / val / test)
+            </button>
+
+            <button class="primary-btn full-width" id="btn-train">
+                Lancer l'entraînement
+            </button>
+
+            <button class="secondary-btn full-width" id="btn-gen-graphs">
+                Générer les courbes (accuracy / loss)
+            </button>
+
+            <p class="status" id="status-train">
+                Aucun entraînement en cours.
+            </p>
+            <p class="status" id="status-graphs">
+                Courbes non générées.
+            </p>
+        </section>
+        
+        <!-- 5. Seuils & évaluation -->
+        <section class="card">
+            <h2>5. Seuils &amp; Évaluation</h2>
+
+            <div class="btn-row">
+                <button class="secondary-btn" id="btn-find-thresholds">
+                    Calculer seuils (validation)
+                </button>
+                <button class="primary-btn" id="btn-eval-test">
+                    Évaluer sur le test
+                </button>
+            </div>
+
+            <div class="metrics">
+                <p id="status-eval" style="margin-top:10px; opacity:0.8;">Statut : en attente…</p>
+                <p><strong>F1 micro :</strong> <span id="f1-micro">–</span></p>
+                <p><strong>F1 macro :</strong> <span id="f1-macro">–</span></p>
+            </div>
+        </section>
+
+        <!-- 6. Détail par genre -->
+        <section class="card">
+            <h2>6. Détail par genre</h2>
+            <div class="table-wrapper scrollable-table">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Genre</th>
+                        <th>Seuil</th>
+                        <th>F1</th>
+                        <th>Préc.</th>
+                        <th>Recall</th>
+                        <th>Support</th>
+                    </tr>
+                    </thead>
+                    <tbody id="table-genres">
+                    <tr>
+                        <td colspan="6" style="text-align:center; opacity:0.7;">
+                            Les stats apparaîtront ici après une évaluation.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+</div>
+</body>
+</html>

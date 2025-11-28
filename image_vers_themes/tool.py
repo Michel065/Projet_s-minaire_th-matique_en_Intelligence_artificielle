@@ -51,7 +51,7 @@ def extraction_theme_rare(source="../data_filtrer.json", seuil=2,aff=False):  # 
     print("____________________________________\n")
     return liste_theme_rare
 
-def construire_data_boost_train(source="../data_filtrer.json",img_dir_boost="../MoviePosters_boost"):
+def construire_data_boost_train(source="../data_filtrer.json",img_dir_boost="../MoviePosters_boost",max_variantes_par_image=15,facteur_cible=0.5):
     """
     1. Vérifie si data_filter existe
     2. Charge les données
@@ -65,6 +65,8 @@ def construire_data_boost_train(source="../data_filtrer.json",img_dir_boost="../
         print(f"ERREUR : Le fichier '{source}' n'existe pas. on doit le créer avant!!")
         return
 
+    img_ajoute=0
+
     data = bd.load_json(source)
     vect_base = np.asarray(data["train_Y"])
     liste_des_genres = data["liste_des_genres"]
@@ -74,11 +76,12 @@ def construire_data_boost_train(source="../data_filtrer.json",img_dir_boost="../
        print("Fichier de boost deja existant,on annule la création")
     else: 
         print("\nGénération des images boostées…")
-        ed.boost_theme_rare_de_train(source)
+        img_ajoute = ed.boost_theme_rare_de_train(source,img_dir_boost,max_variantes_par_image,facteur_cible)
 
     repart_apres = ed.calculs_repartition_with_boost(source,False)
     ts.comparaison_repartition(repart_avant, repart_apres, liste_des_genres)
     print("_____________________________________\n")
+    return img_ajoute
 
 def fusionner_genres_trop_rares_en_other(source="../data_filtrer.json",seuil_min_count=100,nom_other="Other"):
     """
@@ -151,6 +154,7 @@ def fusionner_genres_trop_rares_en_other(source="../data_filtrer.json",seuil_min
 
     print(f"Nouvelle liste des genres ({len(nouvelle_liste)} genres) sauvegardée.")
     print("_______________________\n")
+    return new_liste_theme_rare
 
 def split_train_eval_test(source="../data_filtrer.json", ratio_val=0.15, ratio_test=0.15):
     """
@@ -188,8 +192,9 @@ def split_train_eval_test(source="../data_filtrer.json", ratio_val=0.15, ratio_t
     print("Mise à jour du json filtré")
     bd.save_json(source, data)
     print("_________________________________________\n")
+    return len(train_X),len(val_X),len(test_X)
 
-def clean(json_filter_path="../data_filtrer.json", img_dir_boost="../MoviePosters_boost"):
+def clean(json_filter_path="../data_filtrer.json", img_dir_boost="../MoviePosters_boost",model_dir="../model"):
     """
     Supprime le fichier JSON et le dossier MoviePosters_boost 
     """
@@ -213,9 +218,18 @@ def clean(json_filter_path="../data_filtrer.json", img_dir_boost="../MoviePoster
     else:
         print(f"Aucun dossier boost à supprimer : {img_dir_boost}")
 
+    if os.path.exists(model_dir):
+        try:
+            shutil.rmtree(model_dir)
+            print(f"Dossier supprimé : {model_dir}")
+        except Exception as e:
+            print(f"Erreur suppression dossier du model : {e}")
+    else:
+        print(f"Aucun dossier du model à supprimer : {model_dir}")
+
     print("__________________\n")
 
-def generer_datasets(source="../data_filtrer.json", batch_size=64):
+def generer_datasets(source="../data_filtrer.json", batch_size=64,boost=True):
     print("_____ génération des datasets TF _____")
 
     data = bd.load_json(source)
@@ -223,7 +237,7 @@ def generer_datasets(source="../data_filtrer.json", batch_size=64):
     train_X = data["train_X"]
     train_Y = np.asarray(data["train_Y"])
 
-    if "train_X_boost" in data and "train_Y_boost" in data:
+    if ("train_X_boost" in data and "train_Y_boost" in data) and boost:
         train_X = train_X + data["train_X_boost"]
         train_Y = np.concatenate([train_Y, np.asarray(data["train_Y_boost"])], axis=0)
 
@@ -238,61 +252,135 @@ def generer_datasets(source="../data_filtrer.json", batch_size=64):
     print("_______________________________\n")
     return dataset_train, dataset_val, dataset_test
 
-def entrainement_complet(source="../data_filtrer.json",EPOCHS=50, batch_size=64):
+def entrainement(dataset_train, dataset_val,source="../data_filtrer.json",EPOCHS=50,output_dir="../model",name_model="cnn",forme=(268,182,3)):
     """
     Pipeline d'entraînement complet :
     - Vérifie la présence du fichier data_filter
-    - Vérifie la présence des clés nécessaires (train/val/test)
-    - Construit les datasets
     - Construit et compile le modèle
     - Entraîne le modèle
-    - Calcule les seuils optimaux via la validation
-    - Évalue le modèle sur le test avec seuils
-
-    Retourne :
-        - model entraîné
-        - seuils par genre
-        - stats d'évaluation finale
+    Retourne :model entraîné
     """
-    print("___________ ENTRAINEMENT COMPLET ___________")
+    print(f"___________ ENTRAINEMENT lancer ({EPOCHS})___________")
     if not os.path.exists(source):
         raise FileNotFoundError(f"ERREUR : Le fichier '{source}' est introuvable. ")
 
     data = bd.load_json(source)
 
     # Verification
-    required_keys = [
-        "liste_des_genres",
-        "train_X", "train_Y",
-        "val_X",   "val_Y",
-        "test_X",  "test_Y"
-    ]
+    required_keys = ["liste_des_genres"]
     for k in required_keys:
         if k not in data:
             raise ValueError(f"ERREUR : La clé '{k}' manque dans {source}. ")
 
     liste_des_genres = data["liste_des_genres"]
 
-    dataset_train, dataset_val, dataset_test  = generer_datasets(source,batch_size)
-
-    param_model = ((182,268,3), len(liste_des_genres))
+    param_model = (forme, len(liste_des_genres))
     model = t.define_startegie(bm.build_model, param_model)
 
     print("Modèle compilé")
 
-    history = t.train_model(model, dataset_train, dataset_val,EPOCHS)
+    history,model = t.train_model(model, dataset_train, dataset_val,EPOCHS,output_dir)
     print("Entraînement terminé")
-
-    seuils = t.finds_seuil_pour_chaque_theme(model, dataset_val, liste_des_genres)
-    print("Seuils optimaux déterminés")
-
-    resume_global, stats_par_genre = t.evalution_du_model_avec_seuils(model, dataset_test, liste_des_genres, seuils)
-    print("Évaluation finale terminée")
     
-    data["seuils_optimaux"]=seuils
-    bd.save_json(source, data)
-    print("Mise à jour du json filtré")
-    
+    t.save_model_entier(model,output_dir,name_model)
+    print("Sauvegarde model!")
+
+    t.save_history(history,output_dir)
+    print("Sauvegarde history!")
+
     print("____________________________________________")
+    
+    return model,history
 
-    return model, seuils, stats_par_genre,resume_global, history
+def calculs_seuils(model, dataset_val, source="../data_filtrer.json"):
+    """
+    Calcule les seuils optimaux par genre à partir du dataset de validation,
+    et les enregistre dans le fichier JSON.
+
+    Sauvegarde dans le JSON : "seuils_optimaux" 
+
+    Retourne :
+        seuils, stats_seuils
+    """
+    print("___________ CALCULS_SEUILS ___________")
+
+    data = bd.load_json(source)
+    # Verification
+    required_keys = ["liste_des_genres"]
+    for k in required_keys:
+        if k not in data:
+            raise ValueError(f"ERREUR : La clé '{k}' manque dans {source}. ")
+        
+    if dataset_val is None:
+        raise ValueError("ERREUR : dataset_val est None.")
+
+    liste_des_genres = data["liste_des_genres"]
+
+    seuils = t.finds_seuil_pour_chaque_theme(model,dataset_val,liste_des_genres)
+    print("Seuils optimaux déterminés.")
+
+    data["seuils_optimaux"] = seuils.tolist()
+    bd.save_json(source, data)
+    print("Mise à jour du json filtré.")
+    print("____________________________________")
+
+    return seuils
+
+def evaluation(model, dataset_test, source="../data_filtrer.json"):
+    """
+    Évalue le modèle sur le dataset de test en utilisant les seuils optimaux enregistrés dans le JSON.
+
+    Utilise :
+        - "liste_des_genres"
+        - "seuils_optimaux"
+
+    Sauvegarde dans le JSON :
+        - "resume_global"     
+        - "stats_par_genre" 
+
+    Retourne :
+        resume_global, stats_par_genre
+    """
+    print("___________ EVALUATION ___________")
+
+    data = bd.load_json(source)
+
+    # Verification
+    required_keys = ["liste_des_genres"]
+    for k in required_keys:
+        if k not in data:
+            raise ValueError(f"ERREUR : La clé '{k}' manque dans {source}. ")
+    if dataset_test is None:
+        raise ValueError("ERREUR : dataset_test est None.")
+
+    liste_des_genres = data["liste_des_genres"]
+
+    seuils = data.get("seuils_optimaux", None)
+    if seuils is None:
+        raise ValueError("ERREUR : aucun seuil trouvé dans le json ")
+
+    resume_global, stats_par_genre = t.evalution_du_model_avec_seuils(model,dataset_test,liste_des_genres,seuils)
+    print("Évaluation finale terminée.")
+
+    data["resume_global"]   = resume_global
+    data["stats_par_genre"] = stats_par_genre
+    bd.save_json(source, data)
+    print("Mise à jour du json filtré.")
+    print("____________________________________")
+    return resume_global, stats_par_genre
+
+def creation_courbe_from_history(output_dir="../model"):
+    """
+    Génère les courbes loss + AUC à partir de l’historique sauvegardé dans le dossier.
+    """
+    print("_________ COURBES D'ENTRAÎNEMENT _________")
+
+    history = t.load_history(output_dir)
+    if history is None:
+        print("Erreur:Aucun historique trouvé.")
+        print("__________________________________________")
+        return
+    paths = ts.creation_courbe_from_history(history, output_dir)
+    print(f"Courbes générées dans : {output_dir}")
+    print("__________________________________________")
+    return paths

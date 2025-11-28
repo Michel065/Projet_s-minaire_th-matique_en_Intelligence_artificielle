@@ -8,7 +8,7 @@ import json
 
 import WebLogCallback as w
 
-def define_startegie(build_model,param_model): #=((182,268,3),28)
+def define_startegie(build_model,param_model): #=((268,182,3),28)
     mixed_precision.set_global_policy("mixed_float16") # conseil de chat pour optimiser
     strategy = tf.distribute.get_strategy()   
     with strategy.scope():
@@ -23,7 +23,7 @@ def define_startegie(build_model,param_model): #=((182,268,3),28)
         )
     return model
 
-def train_model(model,dataset_train,dataset_val,EPOCHS = 50):
+def train_model(model,dataset_train,dataset_val,EPOCHS = 50,output_dir="../model"):
     """
     fonction pour train un model, beaucoup de partie recupere dans un autre cours
 
@@ -45,7 +45,7 @@ def train_model(model,dataset_train,dataset_val,EPOCHS = 50):
             save_best_only=True,
             verbose=1
         ),
-        w.WebLogCallback("train_status.json"),
+        w.WebLogCallback(EPOCHS,output_dir),
     ]
 
 
@@ -57,7 +57,7 @@ def train_model(model,dataset_train,dataset_val,EPOCHS = 50):
     m = int((tt % 3600) // 60)
     s = int(tt % 60)
     print(f"Temps d'entraînement: {h} h {m} min {s} s")
-    return history
+    return history,model
 
 def finds_seuil_pour_chaque_theme(model, dataset_val, liste_des_genres,nb_steps=19, t_min=0.05, t_max=0.95,aff=True):
     """
@@ -253,3 +253,45 @@ def save_model_entier(model, dossier="save_model", nom="model_final_image_vers_t
 def load_model(nom_model="best_model", dossier="save_model"):
     chemin_modele = os.path.join(dossier, f"{nom_model}.keras")
     return tf.keras.models.load_model(chemin_modele, compile=True)
+
+def save_history(history,output_dir="./models", name="history"):
+    """
+    Sauvegarde l'historique d'entraînement.
+    """
+    hist_dict = history.history
+    os.makedirs(output_dir, exist_ok=True)
+    chemin_hist = os.path.join(output_dir, f"{name}.json")
+
+    with open(chemin_hist, "w", encoding="utf-8") as f:
+        json.dump(hist_dict, f, ensure_ascii=False, indent=2)
+
+    print(f"Historique d'entraînement sauvegardé dans '{chemin_hist}'.")
+
+def load_history(output_dir="./models", name="history"):
+    """
+    Charge l'historique.
+    """
+    chemin_hist = os.path.join(output_dir, f"{name}.json")
+    if not os.path.exists(chemin_hist):
+        print(f"load_history : fichier '{chemin_hist}' introuvable.")
+        return None
+
+    with open(chemin_hist, "r", encoding="utf-8") as f:
+        hist_dict = json.load(f)
+
+    print(f"Historique d'entraînement chargé depuis '{chemin_hist}'.")
+    return hist_dict
+
+def load_train_status(output_dir="./models"):
+    """
+    Charge train_status.
+    """
+    chemin_hist = os.path.join(output_dir, "train_status.json")
+    if not os.path.exists(chemin_hist):
+        print(f"load_train_status : fichier '{chemin_hist}' introuvable.")
+        return None
+    with open(chemin_hist, "r", encoding="utf-8") as f:
+        train_status = json.load(f)
+
+    print(f"Train_status chargé depuis '{chemin_hist}'.")
+    return train_status

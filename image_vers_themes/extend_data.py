@@ -142,6 +142,7 @@ def boost_theme_rare_de_train(source="../data_filtrer.json",img_dir_boost  = "..
 
     bd.save_json(source, data)
     print("____________________________")
+    return nbr_ajout_boost
 
 def calculs_repartition_with_boost(source="../data_filtrer.json",print_data=True,titre="Répartition des thèmes (avec boost)"):  
     """

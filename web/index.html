@@ -2,203 +2,39 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Image → Thèmes – Console d'entraînement</title>
+    <title>Console Accueil</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-<div class="page">
+<body class="home-body">
+<div class="home-page">
 
-    <!-- HEADER -->
-    <header class="header">
-        <div class="header-left">
-            <h1>Image → Thèmes</h1>
-            <p class="subtitle">Console d'entraînement & monitoring</p>
-        </div>
-
-        <div class="header-right">
-            <button class="mode-btn mode-btn--active">Image → Thèmes</button>
-            <button class="mode-btn mode-btn--disabled" title="Bientôt">
-                Thèmes → Image
-            </button>
-        </div>
+    <header class="home-header">
+        <h1>Console – Posters &amp; Thèmes</h1>
+        <p class="subtitle">Choisis ce que tu veux faire</p>
     </header>
 
-    <!-- DASHBOARD GRID -->
-    <main class="dashboard">
+    <main class="home-grid">
+        <a class="home-card" href="entrainement_ivt.html">
+            <h2>Entraînement<br>Image ==> Thèmes</h2>
+            <p>Préparer les données, booster les classes rares, entraîner le modèle.</p>
+        </a>
 
-        <!-- A : Sources -->
-        <section class="card">
-            <h2>1. Données d’entrée</h2>
-            <div class="field">
-                <label for="csv-path">Chemin CSV</label>
-                <input id="csv-path" type="text" value="../MovieGenre.csv">
-            </div>
-            <div class="field">
-                <label for="img-dir">Dossier posters</label>
-                <input id="img-dir" type="text" value="../MoviePosters/">
-            </div>
+        <a class="home-card home-card--disabled" href="#">
+            <h2>Entraînement<br>Thèmes ==> Image</h2>
+            <p>(Bientôt) Générer des affiches à partir des genres.</p>
+        </a>
 
-            <button class="primary-btn" id="btn-build-filter">
-                Construire <code>data_filtrer.json</code>
-            </button>
+        <a class="home-card home-card--disabled" href="#">
+            <h2>Test<br>Image ==> Thèmes</h2>
+            <p>Uploader une image et voir les genres prédits.</p>
+        </a>
 
-            <p class="status" id="status-filter">
-                Statut : en attente…
-            </p>
-        </section>
-
-        <!-- B : Thèmes rares & Other -->
-        <section class="card">
-            <h2>2. Thèmes rares &amp; Other</h2>
-
-            <div class="field-row">
-                <div class="field">
-                    <label for="seuil-rare-pct">Seuil rare (%)</label>
-                    <input id="seuil-rare-pct" type="number" value="2" min="0" step="0.5">
-                </div>
-                <div class="field">
-                    <label for="min-count-other">Min count pour Other</label>
-                    <input id="min-count-other" type="number" value="100" min="1" step="10">
-                </div>
-            </div>
-
-            <div class="field">
-                <label for="nom-other">Nom de la classe fusionnée</label>
-                <input id="nom-other" type="text" value="Other">
-            </div>
-
-            <div class="btn-row">
-                <button class="secondary-btn" id="btn-extract-rare">
-                    Calculer thèmes rares
-                </button>
-                <button class="primary-btn" id="btn-fusion-other">
-                    Fusionner en "Other"
-                </button>
-            </div>
-
-            <p class="status" id="status-rare">
-                Thèmes rares : non calculés.
-            </p>
-        </section>
-
-        <!-- C : Split & Boost -->
-        <section class="card">
-            <h2>3. Split &amp; Augmentation</h2>
-
-            <div class="field-row">
-                <div class="field">
-                    <label for="ratio-val">Val (%)</label>
-                    <input id="ratio-val" type="number" value="15" min="0" max="50">
-                </div>
-                <div class="field">
-                    <label for="ratio-test">Test (%)</label>
-                    <input id="ratio-test" type="number" value="15" min="0" max="50">
-                </div>
-            </div>
-
-            <div class="field-row">
-                <div class="field">
-                    <label for="max-var">Max variantes / image</label>
-                    <input id="max-var" type="number" value="15" min="1" max="50">
-                </div>
-                <div class="field">
-                    <label for="facteur-cible">Facteur cible</label>
-                    <input id="facteur-cible" type="number" value="0.5" min="0.1" max="2" step="0.1">
-                </div>
-            </div>
-
-            <div class="btn-row">
-                <button class="secondary-btn" id="btn-split">
-                    Split Train / Val / Test
-                </button>
-                <button class="primary-btn" id="btn-boost">
-                    Générer données boostées
-                </button>
-            </div>
-
-            <p class="status" id="status-split-boost">
-                Répartition : inconnue.
-            </p>
-        </section>
-
-        <!-- D : Entraînement -->
-        <section class="card">
-            <h2>4. Entraînement</h2>
-
-            <div class="field-row">
-                <div class="field">
-                    <label for="epochs">Epochs</label>
-                    <input id="epochs" type="number" value="50" min="1" max="500">
-                </div>
-                <div class="field">
-                    <label for="batch-size">Batch size</label>
-                    <input id="batch-size" type="number" value="64" min="8" max="512" step="8">
-                </div>
-            </div>
-
-            <div class="field checkbox-field">
-                <input id="use-boost" type="checkbox" checked>
-                <label for="use-boost">Utiliser les données boostées pour le train</label>
-            </div>
-
-            <button class="primary-btn full-width" id="btn-train">
-                Lancer l'entraînement
-            </button>
-
-            <p class="status" id="status-train">
-                Aucun entraînement en cours.
-            </p>
-        </section>
-
-        <!-- E : Seuils & évaluation -->
-        <section class="card">
-            <h2>5. Seuils &amp; Évaluation</h2>
-
-            <div class="btn-row">
-                <button class="secondary-btn" id="btn-find-thresholds">
-                    Calculer seuils (validation)
-                </button>
-                <button class="primary-btn" id="btn-eval-test">
-                    Évaluer sur le test
-                </button>
-            </div>
-
-            <div class="metrics">
-                <p><strong>F1 micro :</strong> <span id="f1-micro">–</span></p>
-                <p><strong>F1 macro :</strong> <span id="f1-macro">–</span></p>
-                <p><strong>AUC ROC :</strong> <span id="auc-roc">–</span></p>
-                <p><strong>AUC PR :</strong> <span id="auc-pr">–</span></p>
-            </div>
-        </section>
-
-        <!-- F : Détail par genre -->
-        <section class="card">
-            <h2>6. Détail par genre</h2>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Genre</th>
-                        <th>Seuil</th>
-                        <th>F1</th>
-                        <th>Préc.</th>
-                        <th>Recall</th>
-                        <th>Support</th>
-                    </tr>
-                    </thead>
-                    <tbody id="table-genres">
-                    <!-- plus tard : lignes générées depuis le backend -->
-                    <tr>
-                        <td colspan="6" style="text-align:center; opacity:0.7;">
-                            Les stats apparaîtront ici après une évaluation.
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
+        <a class="home-card home-card--disabled" href="#">
+            <h2>Test<br>Thèmes ==> Image</h2>
+            <p>Explorer ou filtrer des images par thèmes.</p>
+        </a>
     </main>
+
 </div>
 </body>
 </html>

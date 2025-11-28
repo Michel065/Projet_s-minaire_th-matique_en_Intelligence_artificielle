@@ -3,6 +3,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import build_data as bd
+import os
 
 
 def calculs_repartition_themes(liste_themes_par_image, liste_des_genres, titre="", print_data=False):
@@ -88,29 +89,67 @@ def construire_index_genres_vecteur(vecteurs, liste_des_genres):
 
     return counts, dico_genre_vers_idx
 
-def creation_courbe_accuracy_loss_from_hitory(history):
-    # Accuracy
-    plt.figure()
-    plt.plot(history.get("accuracy", []), label="train acc")
-    plt.xlabel("Epoch")
-    plt.ylabel("Accuracy")
-    plt.title("Accuracy Entrainement")
-    plt.grid(True)
-    plt.legend()
-    plt.savefig("courbe_accuracy.png", bbox_inches="tight")
-    plt.close()
+def creation_courbe_from_history(history,output_dir="../model", output_prefix="courbe"):
+    """
+    Génère 2 courbes à partir de l'historique d'entraînement :
 
-    # Loss
+      1. Loss (train / val)
+      2. AUC (ROC & PR, train / val)
+
+    Sauvegarde :
+      - <output_dir>/<output_prefix>_loss.png
+      - <output_dir>/<output_prefix>_auc.png
+    """
+
+    if isinstance(history, dict):
+        epochs      = list(range(1, len(history.get("loss", [])) + 1))
+        loss        = history.get("loss", [])
+        val_loss    = history.get("val_loss", [])
+        auc_roc     = history.get("auc_roc", [])
+        val_auc_roc = history.get("val_auc_roc", [])
+        auc_pr      = history.get("auc_pr", [])
+        val_auc_pr  = history.get("val_auc_pr", [])
+    else:
+        raise TypeError("history doit être un dict.")
+
+    path_loss=os.path.join(output_dir, f"{output_prefix}_loss.png")
+    path_ARP=os.path.join(output_dir, f"{output_prefix}_auc.png")
+
+    # --------- Courbe de loss ---------
     plt.figure()
-    plt.plot(history.get("loss", []), label="train loss")
+    if loss:
+        plt.plot(epochs[:len(loss)], loss, label="train loss")
+    if val_loss:
+        plt.plot(epochs[:len(val_loss)], val_loss, label="val loss")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
-    plt.title("Loss Entrainement")
+    plt.title("Loss entraînement")
     plt.grid(True)
     plt.legend()
-    plt.savefig("courbe_loss.png", bbox_inches="tight")
+    plt.savefig(path_loss, bbox_inches="tight")
     plt.close()
-    print("Courbes sauvegardées : courbe_accuracy.png, courbe_loss.png")
+
+    # --------- Courbe AUC (ROC + PR) ----------
+    plt.figure()
+    if auc_roc:
+        plt.plot(epochs[:len(auc_roc)], auc_roc, label="train AUC ROC")
+    if val_auc_roc:
+        plt.plot(epochs[:len(val_auc_roc)], val_auc_roc, label="val AUC ROC")
+
+    if auc_pr:
+        plt.plot(epochs[:len(auc_pr)], auc_pr, label="train AUC PR")
+    if val_auc_pr:
+        plt.plot(epochs[:len(val_auc_pr)], val_auc_pr, label="val AUC PR")
+
+    plt.xlabel("Epoch")
+    plt.ylabel("AUC")
+    plt.title("AUC ROC / PR")
+    plt.grid(True)
+    plt.legend()
+    plt.savefig(path_ARP, bbox_inches="tight")
+    plt.close()
+    print(f"Courbes sauvegardées : {output_prefix}_loss.png, {output_prefix}_auc.png")
+    return (path_loss,path_ARP)
 
 def print_nbr_param_model(model):
     liste=list([(v.shape) for v in model.trainable_weights])

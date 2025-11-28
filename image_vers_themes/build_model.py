@@ -16,7 +16,7 @@ def Conv2D_et_MaxPool(x, nbr_filtre=64,taille_filtre=3,pourcentage_inactifs=0.2)
         x = layers.Dropout(pourcentage_inactifs)(x)
     return x
 
-def build_model(param_model):  # param_model = ((182,268,3), 28)
+def build_model(param_model):  # param_model = ((268,182,3), 28)
     """
     Modèle CNN pour prédire les genres à partir des posters.
     """
