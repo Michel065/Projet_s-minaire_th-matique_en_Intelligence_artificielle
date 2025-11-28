@@ -36,10 +36,12 @@ def train_model(model,dataset_train,dataset_val,EPOCHS = 50,output_dir="../model
     Returns:
         hitory: l'historique pour faire des graphs
     """
+
+    best_model_path = os.path.join(output_dir,"best_model.keras")
     callbacks = [ #recup dans le cours d'apprentissage données massive
         EarlyStopping(monitor="val_auc_pr", patience=5, mode="max", restore_best_weights=True),
         ModelCheckpoint(
-            filepath="best_model.keras",
+            filepath=best_model_path,
             monitor="val_auc_pr",
             mode="max",
             save_best_only=True,
