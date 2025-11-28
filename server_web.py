@@ -203,36 +203,50 @@ def api_generate_graphs():
 # =========================
 #  API : CLEAN
 # =========================
-@app.post("/api/clean")
-def clean():
+@app.post("/api/clean_all")
+def api_clean_all():
     """
     Juste on supp tout
-    Body: {img_dir_boost}
+    Body: {img_dir_boost , model_dir}
     """
     data = request.get_json() or {}
     img_dir_boost = data.get("img_dir_boost", IMG_DIR_BOOST)
     model_dir = data.get("model_dir", MODEL_DIR)
     try:
-        tl.clean(JSON_FILTER,img_dir_boost,model_dir)
+        tl.clean_all(JSON_FILTER,img_dir_boost,model_dir)
         return jsonify({"ok": True,"message": "Suppression terminée"}), 200
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.post("/api/clean_filter")
+def api_clean_filter():
+    try:
+        tl.clean_data_filter(json_filter_path=JSON_FILTER)
+        return jsonify({"ok": True, "message": "data_filtrer.json supprimé."}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
+@app.post("/api/clean_boost")
+def api_clean_boost():
+    data = request.get_json() or {}
+    img_dir_boost = data.get("img_dir_boost", IMG_DIR_BOOST)
+    try:
+        tl.clean_boost_dir(img_dir_boost=img_dir_boost)
+        return jsonify({"ok": True, "message": f"Dossier d’augmentation nettoyé ({img_dir_boost})."}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
-
-
-
-
-
-
-
-
-
-
-
+@app.post("/api/clean_model")
+def api_clean_model():
+    data = request.get_json() or {}
+    model_dir = data.get("model_dir", MODEL_DIR)
+    try:
+        tl.clean_model_dir(model_dir=model_dir)
+        return jsonify({"ok": True, "message": f"Dossier modèle nettoyé ({model_dir})."}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 

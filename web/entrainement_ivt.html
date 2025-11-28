@@ -5,6 +5,8 @@
     <title>Image ==> Thèmes – Entraînement</title>
     <link rel="stylesheet" href="styles.css">
 
+    <script type="module" src="js/apiService.js"></script>
+    <script type="module" src="js/entrainement_ivt_clean.js"></script>
     <script type="module" src="js/entrainement_ivt1.js"></script>
     <script type="module" src="js/entrainement_ivt2.js"></script>
     <script type="module" src="js/entrainement_ivt3.js"></script>
@@ -21,7 +23,25 @@
             <h1>Image ==> Thèmes</h1>
             <p class="subtitle">Entraînement &amp; préparation des données</p>
         </div>
-
+        
+         <div class="header-center">
+            <div class="clean-buttons">
+                <button id="btnCleanFilter" class="button button-secondary">
+                    Clean data_filter
+                </button>
+                <button id="btnCleanBoost" class="button button-secondary">
+                    Clean augmentation train
+                </button>
+                <button id="btnCleanModel" class="button button-secondary">
+                    Clean dossier du modèle
+                </button>
+                <button id="btnCleanAll" class="button button-danger">
+                    Clean ALL
+                </button>
+            </div>
+            <p id="clean-status" class="status" style="margin-top: 6px;"></p>
+        </div>
+        
         <div class="header-right">
             <a href="index.html" class="back-btn">Retour accueil</a>
         </div>
@@ -44,9 +64,6 @@
 
             <button class="primary-btn" id="btnBuildFilter">
                 Construire <code>data_filtrer.json</code>
-            </button>
-            <button id="btnCleanAll" class="button button-secondary">
-                Clean all
             </button>
 
             <p class="status log" id="log-data">

@@ -194,41 +194,6 @@ def split_train_eval_test(source="../data_filtrer.json", ratio_val=0.15, ratio_t
     print("_________________________________________\n")
     return len(train_X),len(val_X),len(test_X)
 
-def clean(json_filter_path="../data_filtrer.json", img_dir_boost="../MoviePosters_boost",model_dir="../model"):
-    """
-    Supprime le fichier JSON et le dossier MoviePosters_boost 
-    """
-    print("_____ CLEAN _____")
-    
-    if os.path.exists(json_filter_path):
-        try:
-            os.remove(json_filter_path)
-            print(f"Fichier supprimé : {json_filter_path}")
-        except Exception as e:
-            print(f"Erreur suppression fichier json : {e}")
-    else:
-        print(f"Aucun fichier json à supprimer : {json_filter_path}")
-
-    if os.path.exists(img_dir_boost):
-        try:
-            shutil.rmtree(img_dir_boost)
-            print(f"Dossier supprimé : {img_dir_boost}")
-        except Exception as e:
-            print(f"Erreur suppression dossier boost : {e}")
-    else:
-        print(f"Aucun dossier boost à supprimer : {img_dir_boost}")
-
-    if os.path.exists(model_dir):
-        try:
-            shutil.rmtree(model_dir)
-            print(f"Dossier supprimé : {model_dir}")
-        except Exception as e:
-            print(f"Erreur suppression dossier du model : {e}")
-    else:
-        print(f"Aucun dossier du model à supprimer : {model_dir}")
-
-    print("__________________\n")
-
 def generer_datasets(source="../data_filtrer.json", batch_size=64,boost=True):
     print("_____ génération des datasets TF _____")
 
@@ -384,3 +349,64 @@ def creation_courbe_from_history(output_dir="../model"):
     print(f"Courbes générées dans : {output_dir}")
     print("__________________________________________")
     return paths
+
+
+
+
+def clean_all(json_filter_path="../data_filtrer.json", img_dir_boost="../MoviePosters_boost",model_dir="../model"):
+    """
+    Supprime le fichier JSON, le dossier MoviePosters_boost et le dossier du model 
+    """
+    print("_____ CLEAN ALL_____")
+    clean_data_filter(json_filter_path)
+    clean_boost_dir(img_dir_boost)
+    clean_model_dir(model_dir)
+    print("__________________\n")
+
+def clean_model_dir(model_dir="../model"):
+    """
+    Supprime le dossier du model 
+    """
+    print("_____ CLEAN MODEL DIR_____")
+    
+    if os.path.exists(model_dir):
+        try:
+            shutil.rmtree(model_dir)
+            print(f"Dossier supprimé : {model_dir}")
+        except Exception as e:
+            print(f"Erreur suppression dossier du model : {e}")
+    else:
+        print(f"Aucun dossier du model à supprimer : {model_dir}")
+    print("__________________\n")
+
+def clean_boost_dir(img_dir_boost="../MoviePosters_boost"):
+    """
+    Supprime le dossier MoviePosters_boost
+    """
+    print("_____ CLEAN IMG DIR BOOST_____")
+    
+    if os.path.exists(img_dir_boost):
+        try:
+            shutil.rmtree(img_dir_boost)
+            print(f"Dossier supprimé : {img_dir_boost}")
+        except Exception as e:
+            print(f"Erreur suppression dossier boost : {e}")
+    else:
+        print(f"Aucun dossier boost à supprimer : {img_dir_boost}")
+    print("__________________\n")
+
+def clean_data_filter(json_filter_path="../data_filtrer.json"):
+    """
+    Supprime le fichier JSON  
+    """
+    print("_____ CLEAN DATA FILTER_____")
+    
+    if os.path.exists(json_filter_path):
+        try:
+            os.remove(json_filter_path)
+            print(f"Fichier supprimé : {json_filter_path}")
+        except Exception as e:
+            print(f"Erreur suppression fichier json : {e}")
+    else:
+        print(f"Aucun fichier json à supprimer : {json_filter_path}")
+    print("__________________\n")
