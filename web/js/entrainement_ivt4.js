@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnGenDatasets  = document.getElementById("btn-gen-datasets"); 
   const btnTrain        = document.getElementById("btn-train");
   const btnGenGraphs    = document.getElementById("btn-gen-graphs");
+  const btnLoadModel = document.getElementById("btn-load-model");
 
   const statusTrain     = document.getElementById("status-train");
   const statusGraphs    = document.getElementById("status-graphs");
@@ -103,6 +104,33 @@ document.addEventListener("DOMContentLoaded", () => {
       statusGraphs.classList.add("log-success");
     }
   });
+
+  btnLoadModel?.addEventListener("click", async () => {
+    const modelDir  = (inputModelDir?.value || "").trim();
+    const modelName = (inputModelName?.value || "").trim() || "model_pvt";
+
+    if (!modelDir) {
+        statusTrain.textContent = "Statut : dossier du modèle manquant.";
+        statusTrain.classList.add("log-error");
+        return;
+    }
+
+    if (!modelName) {
+        statusTrain.textContent = "Statut : nom du modèle manquant.";
+        statusTrain.classList.add("log-error");
+        return;
+    }
+
+    statusTrain.textContent = "Chargement du modèle...";
+    statusTrain.classList.remove("log-error", "log-success");
+
+    const json = await callApi("/api/load_model", {model_dir: modelDir,model_name: modelName}, statusTrain);
+    
+    if (json && json.ok) {
+        statusTrain.textContent = "Modèle chargé !";
+        statusTrain.classList.add("log-success");
+    }
+});
 });
 
 

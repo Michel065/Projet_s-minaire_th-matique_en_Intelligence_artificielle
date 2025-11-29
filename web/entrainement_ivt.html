@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Image ==> Thèmes – Entraînement</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="entrainement_ivt.css">
 
     <script type="module" src="js/apiService.js"></script>
     <script type="module" src="js/entrainement_ivt_clean.js"></script>
@@ -209,11 +209,17 @@
             <button class="secondary-btn full-width" id="btn-gen-datasets">
                 Préparer les datasets (train / val / test)
             </button>
+            <div class="btn-row action-row">
 
-            <button class="primary-btn full-width" id="btn-train">
-                Lancer l'entraînement
-            </button>
-
+                <button class="secondary-btn small-btn" id="btn-load-model">
+                    Charger modèle
+                </button>
+                
+                <button class="primary-btn full-width" id="btn-train">
+                    Lancer l'entraînement
+                </button>
+                
+            </div>
             <button class="secondary-btn full-width" id="btn-gen-graphs">
                 Générer les courbes (accuracy / loss)
             </button>

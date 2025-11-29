@@ -1,4 +1,4 @@
-import sys,os, csv
+import sys,os, csv, random
 import json
 import tensorflow as tf
 import numpy as np
@@ -197,3 +197,28 @@ def reformate_vecteur_themes_par_image(Y_full, mask_genres_other):
     # Construction de la nouvelle matrice
     New_Y = np.concatenate([Y_normales, col_other.reshape(-1, 1)],axis=1)
     return New_Y
+
+def verif_image_existe(image_path=""):
+    if(image_path is not None):
+        return os.path.exists(image_path)
+    
+def recup_aleatoirement_x_image_from_dir(folder_path="",nb_random=1):
+    if not os.path.exists(folder_path):
+        raise FileNotFoundError(f"Dossier introuvable : {folder_path}")
+
+    if not os.path.isdir(folder_path):
+        raise NotADirectoryError(f"Le chemin n'est pas un dossier : {folder_path}")
+    
+    EXT = {".jpg", ".jpeg", ".png"}
+    liste_images = [os.path.join(folder_path, f) for f in os.listdir(folder_path)if os.path.splitext(f.lower())[1] in EXT]
+    
+    nbr_total = len(liste_images)
+
+    if nbr_total == 0:
+        raise ValueError(f"Aucune image valide trouvée dans : {folder_path}")
+
+    if nb_random > nbr_total:
+        raise ValueError(
+            f"Nombre demandé ({nb_random}) > nombre d'images disponibles ({nbr_total})"
+        )
+    return random.sample(liste_images, nb_random)

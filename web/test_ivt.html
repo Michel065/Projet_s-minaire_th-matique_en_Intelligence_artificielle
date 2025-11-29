@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Image ==> Thèmes – Test</title>
+    <link rel="stylesheet" href="test_ivt.css">
+
+    <script type="module" src="js/apiService.js"></script>
+    <script type="module" src="js/test_ivt1.js"></script>
+    <script type="module" src="js/test_ivt2.js"></script>
+    <script type="module" src="js/test_ivt3.js"></script>
+</head>
+<body>
+
+<header class="header">
+    <div class="header-left">
+        <h1>Image ==> Thèmes</h1>
+        <p class="subtitle">Test du modèle sur des images</p>
+    </div>
+
+    <div class="header-right">
+        <a href="index.html" class="back-btn">Retour accueil</a>
+    </div>
+</header>
+
+<main class="dashboard test-grid">
+
+    <div class="left-column">
+        
+        <!-- 1. Modèle -->
+        <section class="card">
+            <h2>1. Modèle</h2>
+
+            <div class="field">
+                <label for="model-dir-test">Dossier du modèle</label>
+                <input id="model-dir-test" type="text" value="./resultat_pvt/">
+            </div>
+
+            <div class="field">
+                <label for="model-name-test">Nom du modèle (.keras)</label>
+                <input id="model-name-test" type="text" value="model_pvt">
+            </div>
+
+            <button class="primary-btn" id="btn-load-model">
+                Charger modèle
+            </button>
+
+            <p class="status log" id="status-model">
+                Statut : aucun modèle chargé.
+            </p>
+        </section>
+
+        <!-- 2. Source d'image -->
+        <section class="card">
+            <h2>2. Source d'image</h2>
+
+            <div class="field">
+                <label>Mode de sélection</label>
+                <div class="field-row">
+                    <label>
+                        <input type="radio" name="mode-image" value="single" checked>
+                        Image unique
+                    </label>
+                    <label>
+                        <input type="radio" name="mode-image" value="folder">
+                        Dossier (tirage aléatoire)
+                    </label>
+                </div>
+            </div>
+
+            <!-- Image unique -->
+            <div class="field" id="field-single-path">
+                <label for="image-path">Chemin de l'image</label>
+                <input id="image-path" type="text" placeholder="./MoviePosters/mon_image.jpg">
+            </div>
+
+            <!-- Dossier -->
+            <div class="field" id="field-folder-path" style="display:none;">
+                <label for="folder-path">Dossier d'images</label>
+                <input id="folder-path" type="text" value="./MoviePosters/">
+            </div>
+
+            <div class="field-row" id="field-folder-nb" style="display:none;">
+                <div class="field">
+                    <label for="nb-random">Nombre d'images à tirer</label>
+                    <input id="nb-random" type="number" value="1" min="1" max="10">
+                </div>
+            </div>
+
+            <button class="secondary-btn" id="btn-load-images">
+                Charger / afficher les images
+            </button>
+
+            <p class="status log" id="status-images">
+                Statut : aucune image chargée.
+            </p>
+        </section>
+
+        <!-- 3. Paramètres de prédiction -->
+        <section class="card">
+            <h2>3. Paramètres de prédiction</h2>
+
+            <div class="field-row">
+                <div class="field">
+                    <label for="seuil-principal">Seuil principal</label>
+                    <input id="seuil-principal" type="number" value="0.50" min="0" max="1" step="0.05">
+                </div>
+                <div class="field">
+                    <label for="seuil-secondaire">Seuil secondaire</label>
+                    <input id="seuil-secondaire" type="number" value="0.30" min="0" max="1" step="0.05">
+                </div>
+            </div>
+
+            <div class="field checkbox-field">
+                <input id="use-per-class-thresholds" type="checkbox" checked>
+                <label for="use-per-class-thresholds">
+                    Utiliser les seuils optimaux par genre (si disponibles)
+                </label>
+            </div>
+
+            <button class="primary-btn full-width" id="btn-predict">
+                Prédire les thèmes
+            </button>
+
+            <p class="status log" id="status-predict">
+                Statut : en attente de lancement.
+            </p>
+        </section>
+
+    </div>
+
+    <section class="card image-panel">
+        <h2>Aperçu de l'image</h2>
+
+        <div class="image-preview-large" id="preview-zone">
+            <span class="image-placeholder">Aucune image sélectionnée.</span>
+        </div>
+
+        <div class="image-nav">
+            <button class="secondary-btn" id="btn-prev-image">◀ Précédente</button>
+            <span id="label-current-image">Image 0 / 0</span>
+            <button class="secondary-btn" id="btn-next-image">Suivante ▶</button>
+        </div>
+    </section>
+    
+    <section class="card results-card">
+        <h2>4. Résultats</h2>
+        <div class="field">
+            <label for="tol-adjust">Tolérance supplémentaire sur les seuils</label>
+            <input id="tol-adjust" type="range" min="-0.4" max="0.4" step="0.01" value="0">
+            <small id="tol-label">Ajustement : 0.00</small>
+        </div>
+
+        <div class="metrics" id="summary-current-image">
+            <p><strong>Image :</strong> <span id="current-image-name">–</span></p>
+            <p><strong>Genres principaux :</strong> <span id="genres-principaux">–</span></p>
+            <p><strong>Genres secondaires :</strong> <span id="genres-secondaires">–</span></p>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Genre</th>
+                        <th>Score</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody id="table-results">
+                    <tr>
+                        <td colspan="3" style="text-align:center; opacity:0.7;">
+                            Les prédictions apparaîtront ici après le test.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+</body>
+</html>

@@ -134,6 +134,17 @@ def api_gen_datasets():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.post("/api/load_model")
+def api_load_model():
+    data = request.get_json() or {}
+    model_dir = data.get("model_dir")
+    model_name = data.get("model_name")
+    try:
+        session.load_model(model_dir, model_name)
+        return jsonify({"ok": True, "message": "Modèle chargé"}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 @app.post("/api/train")
 def api_train():
     """
@@ -220,15 +231,22 @@ def api_clean_all():
 
 @app.post("/api/clean_filter")
 def api_clean_filter():
+    """
+    Juste on supp data filter
+    Body: {}
+    """
     try:
         tl.clean_data_filter(json_filter_path=JSON_FILTER)
         return jsonify({"ok": True, "message": "data_filtrer.json supprimé."}), 200
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
-
 @app.post("/api/clean_boost")
 def api_clean_boost():
+    """
+    Juste on supp img_dir_boost
+    Body: {img_dir_boost}
+    """
     data = request.get_json() or {}
     img_dir_boost = data.get("img_dir_boost", IMG_DIR_BOOST)
     try:
@@ -237,9 +255,12 @@ def api_clean_boost():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
-
 @app.post("/api/clean_model")
 def api_clean_model():
+    """
+    Juste on supp model_dir
+    Body: {model_dir}
+    """
     data = request.get_json() or {}
     model_dir = data.get("model_dir", MODEL_DIR)
     try:
@@ -248,9 +269,62 @@ def api_clean_model():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+# =========================
+#  API : TEST
+# =========================
 
+@app.post("/api/load_images_test")
+def api_load_images_test():
+    """
+    Charge des images pour le test IVT.
+    Body: { mode , image_path || (folder_path , nb_random)}
+    """
+    data = request.get_json() or {}
+    mode        = data.get("mode", "single")
+    image_path  = data.get("image_path")
+    folder_path = data.get("folder_path")
+    nb_random   = int(data.get("nb_random", 1))
 
+    try:
+        images = session.load_images_pour_test(mode=mode,image_path=image_path,folder_path=folder_path,nb_random=nb_random)
 
+        cleaned_images = []
+        for im in images:
+            im = im.strip()
+            if im.startswith("./"):
+                im = "http://localhost:5000/media/" + im[2:]
+            cleaned_images.append(im)
+        return jsonify({"ok": True, "images": cleaned_images}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+#pour charger une image
+@app.route("/media/<path:filepath>")
+def serve_media(filepath):
+    full_path = os.path.join(os.getcwd(), filepath)
+
+    if not os.path.isfile(full_path):
+        return "Fichier non trouvé", 404
+
+    directory = os.path.dirname(full_path)
+    filename  = os.path.basename(full_path)
+
+    return send_from_directory(directory, filename)
+
+@app.post("/api/predict_ivt")
+def api_predict_ivt():
+    """
+    Lance une prédiction sur la session.
+    Body: { use_per_class: bool }
+    """
+    data = request.get_json() or {}
+    use_per_class = bool(data.get("use_per_class", True))
+
+    try:
+        preds_dict, seuils_optimaux = session.predict_ivt(use_per_class=use_per_class)
+        return jsonify({"ok": True, "predictions": preds_dict,"seuil_optimaux":seuils_optimaux}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 

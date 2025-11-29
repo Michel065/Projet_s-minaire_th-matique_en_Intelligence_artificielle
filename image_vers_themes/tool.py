@@ -282,9 +282,10 @@ def calculs_seuils(model, dataset_val, source="../data_filtrer.json"):
     liste_des_genres = data["liste_des_genres"]
 
     seuils = t.finds_seuil_pour_chaque_theme(model,dataset_val,liste_des_genres)
+    seuils_dict = { genre: float(seuils[i]) for i, genre in enumerate(liste_des_genres)}
     print("Seuils optimaux déterminés.")
 
-    data["seuils_optimaux"] = seuils.tolist()
+    data["seuils_optimaux"] = seuils_dict
     bd.save_json(source, data)
     print("Mise à jour du json filtré.")
     print("____________________________________")
@@ -410,3 +411,37 @@ def clean_data_filter(json_filter_path="../data_filtrer.json"):
     else:
         print(f"Aucun fichier json à supprimer : {json_filter_path}")
     print("__________________\n")
+
+
+
+def prediction(model, use_per_class, images_pour_test, source_json):
+    """
+    Prédiction pour les tests.
+    """
+    data = bd.load_json(source_json)
+    liste_des_genres = data.get("liste_des_genres")
+    if not liste_des_genres:
+        raise KeyError("Impossible de trouver 'liste_des_genres' dans le JSON source.")
+
+    seuils_optimaux = None
+    if use_per_class:
+        seuils_optimaux = data.get("seuils_optimaux")
+
+    y_pred, image_keys = t.predict_from_list(model, images_pour_test)
+
+    preds_list = []
+    for i, (key, base_name) in enumerate(image_keys):
+        scores_vec = y_pred[i]
+
+        scores_dict = {
+            genre: float(scores_vec[j])
+            for j, genre in enumerate(liste_des_genres)
+        }
+
+        preds_list.append({
+            "image": key,
+            "scores": scores_dict,
+            "display_name": base_name
+        })
+
+    return preds_list, seuils_optimaux

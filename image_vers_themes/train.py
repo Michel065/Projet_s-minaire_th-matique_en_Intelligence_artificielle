@@ -297,3 +297,27 @@ def load_train_status(output_dir="./models"):
 
     print(f"Train_status chargé depuis '{chemin_hist}'.")
     return train_status
+
+
+def predict_from_list(model, images_pour_test, target_h=268, target_w=182):
+    if model is None:
+        raise ValueError("Aucun modèle chargé pour la prédiction.")
+    if not images_pour_test:
+        raise ValueError("Aucune image à prédire (images_pour_test est vide).")
+
+    X_list = []
+    image_keys = []
+
+    for img_path in images_pour_test:
+        img = tf.keras.utils.load_img(img_path, target_size=(target_h, target_w))
+        arr = tf.keras.utils.img_to_array(img) / 255.0
+        X_list.append(arr)
+
+        base = os.path.basename(img_path)
+        key = os.path.splitext(base)[0]
+        image_keys.append((key, base))
+
+    X = np.stack(X_list, axis=0)
+    y_pred = model.predict(X)
+
+    return y_pred, image_keys
