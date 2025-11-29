@@ -83,7 +83,7 @@ def main():
     if not os.path.exists(sortie_image):
         os.mkdir(sortie_image)
     
-    depuis_le_site = True
+    depuis_le_site = False
     nb_lignes_traitees = 0     # tout ce qu’on a lu
     nb_download_tentes = 0     # ce qu’on a vraiment essayé de dl
     nb_erreurs = 0
@@ -110,11 +110,14 @@ def main():
                         imdb_url = corriges_lurl(ligne["Imdb Link"])
                         download_imdb_poster_from_imdb(imdb_url, nom_poster)
                     else:
-                        if telecharger_poster_from_link(ligne["Poster"], nom_poster):
-                            raise RuntimeError("Erreur")
-                except:
+                        # On considère que telecharger_poster_from_link renvoie True si OK.
+                        success = telecharger_poster_from_link(ligne["Poster"], nom_poster)
+                        if not success:
+                            raise RuntimeError("Échec du téléchargement via le lien direct.")
+                except Exception as e:
                     nb_erreurs += 1
-                    liste_des_erreur.append(nom_poster)
+                    liste_des_erreur.append((nom_poster, str(e)))
+
 
                 pbar.set_description(
                     f"Traités: {nb_lignes_traitees} | DL: {nb_download_tentes} | Err: {nb_erreurs}"
