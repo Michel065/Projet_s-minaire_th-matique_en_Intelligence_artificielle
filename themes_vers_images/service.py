@@ -13,10 +13,10 @@ def _as_list_of_str(x):
     for e in x:
         out.append(e[-1] if isinstance(e, tuple) else e)
     return out
-# themes_vers_images/service.py
+
 def generate_from_themes(theme_str: str, top_k: int = 3) -> Dict[str, Any]:
     mode, image_paths, msg = predict_posters_from_themes(theme_str, top_k_baseline=top_k)
-    image_paths = _as_list_of_str(image_paths)   # << forcer liste de str
+    image_paths = _as_list_of_str(image_paths)   
     return {
         "input_themes": theme_str,
         "mode": mode,
@@ -31,3 +31,4 @@ def analyze_poster(image_path: str, top_k: int = 5) -> Dict[str, Any]:
     scored.sort(key=lambda x: x[1], reverse=True)
     top = [{"genre": g, "score": s} for g, s in scored[:top_k]]
     return {"image_path": image_path, "top_k": top}
+
