@@ -1,5 +1,5 @@
 # themes_vers_images/generated_map.py
-# Mappe une clé de thèmes normalisée -> chemin d'une image IA déjà dans le repo
+
 GENERATED_EXAMPLES = {
     "action,drame,horreur": "data/generated/poster_action_horror_drama_v2.png",
     "comédie,famille": "data/generated/poster_comedy_family_v2.png",
@@ -103,3 +103,4 @@ GENERATED_EXAMPLES = {
     "western": "data/generated/poster_003_western.png",
     "western_2": "data/generated/poster_031_western.png",
 }
+
