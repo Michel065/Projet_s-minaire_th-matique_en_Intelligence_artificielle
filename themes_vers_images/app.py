@@ -1,8 +1,13 @@
 import os
 from flask import Flask, request, jsonify, render_template_string, send_from_directory
 from werkzeug.utils import secure_filename
+from dotenv import load_dotenv; load_dotenv()
 
+
+# en haut de app.py
 from service import generate_from_themes, analyze_poster
+
+
 
 app = Flask(__name__)
 
@@ -52,18 +57,28 @@ INDEX_HTML = """
 
 {% if gen_result %}
 <div class="results">
-    <h3>Résultats - Thèmes → Affiches</h3>
-    <p><strong>Thèmes saisis :</strong> {{ gen_result.input_themes }}</p>
-    <div class="poster-container">
-    {% for p in gen_result.posters %}
-        <div>
-            <img src="{{ url_for('serve_file', filepath=p) }}" alt="poster">
-            <div style="font-size: 0.8em;">{{ p }}</div>
-        </div>
-    {% endfor %}
+  <h3>Résultats - Thèmes → Affiches</h3>
+  <p><strong>Thèmes saisis :</strong> {{ gen_result.input_themes }}</p>
+  <p><strong>Mode :</strong> {{ gen_result.mode }} — {{ gen_result.message }}</p>
+  <div class="poster-container">
+  {% for p in gen_result.posters %}
+    {% if p is string %}
+      {% set path = p %}
+    {% elif p is sequence and p|length > 2 %}
+      {% set path = p[2] %}
+    {% else %}
+      {% set path = p %}
+    {% endif %}
+    <div>
+      <img src="{{ url_for('serve_file', filepath=path) }}" alt="poster">
+      <div style="font-size: 0.8em;">{{ path }}</div>
     </div>
+  {% endfor %}
+  </div>
 </div>
 {% endif %}
+
+
 
 <hr>
 
@@ -118,12 +133,13 @@ def route_generate_from_themes():
         top_k = 3
 
     try:
-        result = generate_from_themes(themes, mode="baseline", top_k=top_k)
+        # HF -> pré-généré -> baseline (géré côté service/routeur)
+        result = generate_from_themes(themes, top_k=top_k)
     except Exception as e:
         return f"Erreur lors de la génération : {e}", 400
 
-    # On réaffiche la page avec gen_result rempli
     return render_template_string(INDEX_HTML, gen_result=result, an_result=None)
+
 
 
 @app.route("/analyze_poster", methods=["POST"])
