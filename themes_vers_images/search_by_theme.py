@@ -34,18 +34,18 @@ def search_similar_posters(query_vector: np.ndarray, top_k: int = 5) -> List[Tup
     """
     ids, X_norm, image_paths = load_index()
 
-    # Normaliser le vecteur de requête
+   
     q = query_vector.astype(np.float32)
     norm = np.linalg.norm(q)
     if norm == 0:
-        # vecteur nul -> on renvoie rien
+        
         return []
     q = q / norm
 
-    # Similarité cosinus : X_norm · q
-    scores = X_norm @ q  # produit matriciel, shape (n_films,)
+    
+    scores = X_norm @ q  
 
-    # top_k indices
+    
     top_k = min(top_k, len(scores))
     top_indices = np.argsort(scores)[::-1][:top_k]
 
@@ -75,7 +75,7 @@ def main_cli():
     )
     args = parser.parse_args()
 
-    # Construire le vecteur de requête à partir de la chaîne utilisateur
+    
     query_vec = parse_user_themes(args.themes, binary=True)
 
     print(f"Thèmes demandés : {args.themes}")

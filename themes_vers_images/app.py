@@ -4,7 +4,6 @@ from werkzeug.utils import secure_filename
 from dotenv import load_dotenv; load_dotenv()
 
 
-# en haut de app.py
 from service import generate_from_themes, analyze_poster
 
 

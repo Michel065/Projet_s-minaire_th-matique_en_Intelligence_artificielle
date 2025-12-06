@@ -4,25 +4,25 @@ from flask import Blueprint, request, jsonify, render_template_string, send_from
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv; load_dotenv()
 
-# dossier racine du projet
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-# on ajoute themes_vers_images dans le PYTHONPATH
+
 sys.path.append(os.path.join(BASE_DIR, "themes_vers_images"))
 
 from service import generate_from_themes, analyze_poster
 
 
 
-# Blueprint au lieu d'une app Flask
+#
 clip_bp = Blueprint("clip_bp", __name__)
 
-# Dossier où on sauvegardera les images uploadées pour analyse
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "data", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Genres proposés dans l’interface (à adapter si besoin)
+
 AVAILABLE_GENRES = [
     "action", "aventure", "animation", "comédie", "crime", "documentaire",
     "drame", "fantasy", "familial", "guerre", "historique", "horreur",
@@ -37,7 +37,7 @@ FR_TO_EN = {
     "comedie": "comedy",
     "drame": "drama",
     "aventure": "adventure",
-    "aventura": "adventure",  # pour ton ancienne clé
+    "aventura": "adventure",  
     "science-fiction": "scifi",
     "science fiction": "scifi",
     "sf": "scifi",
@@ -65,7 +65,7 @@ FR_TO_EN = {
     "court metrage": "short",
     "biopic": "biography",
     "biographie": "biography",
-    "romance": "romance",  # identique ici
+    "romance": "romance",  
 }
 
 
@@ -503,13 +503,10 @@ INDEX_HTML = """
 
 
 
-# =========================
-# ROUTES DU BLUEPRINT
-# =========================
 
 @clip_bp.route("/", methods=["GET"])
 def index():
-    # Page initiale, aucun résultat encore
+    
     return render_template_string(
         INDEX_HTML,
         gen_result=None,
@@ -519,13 +516,12 @@ def index():
 
 @clip_bp.route("/generate_from_themes", methods=["POST"])
 def route_generate_from_themes():
-    # 1) Saisie utilisateur (FR)
+
     raw_themes = request.form.get("themes", "").strip()
 
-    # 2) Normalisation pour le backend (EN)
+    
     normalized_themes = normalize_themes_for_backend(raw_themes)
 
-    # On force toujours 1 résultat
     top_k = 1
 
     try:
@@ -533,12 +529,12 @@ def route_generate_from_themes():
     except Exception as e:
         return f"Erreur lors de la génération : {e}", 400
 
-    # 3) On passe à la fois le résultat et la version FR pour l’affichage
+   
     return render_template_string(
         INDEX_HTML,
         gen_result=result,
         available_genres=AVAILABLE_GENRES,
-        display_themes=raw_themes or normalized_themes,  # fallback
+        display_themes=raw_themes or normalized_themes, 
     )
 
 
@@ -600,9 +596,9 @@ def normalize_themes_for_backend(raw: str) -> str:
     mapped = []
 
     for t in tokens:
-        mapped.append(FR_TO_EN.get(t, t))  # si inconnu, on garde tel quel
+        mapped.append(FR_TO_EN.get(t, t))  
 
-    # On garde l'ordre, on évite les doublons simples
+    
     seen = set()
     result = []
     for t in mapped:

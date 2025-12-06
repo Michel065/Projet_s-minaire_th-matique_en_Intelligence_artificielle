@@ -8,17 +8,12 @@ from utils import GENRES, load_theme_vectors, normalize_vectors
 from generate_baseline import predict_posters_from_themes
 
 
-# ==========================
-# 1. À COMPLÉTER AVEC LE MODÈLE DU BINÔME
-# ==========================
 
 from clip_classifier import predict_themes_from_image
 
 
 
-# ==========================
-# 2. MÉTRIQUES
-# ==========================
+
 
 def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
     a = a.astype(np.float32)

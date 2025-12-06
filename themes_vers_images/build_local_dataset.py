@@ -19,7 +19,7 @@ def build_local_dataset(
     source_posters_dir="../MoviePosters",
     out_csv="data/movie_theme_vectors.csv",
     out_posters_dir="data/posters",
-    max_movies=None  # mets ex: 5000 si tu veux limiter, sinon laisse None
+    max_movies=None  
 ):
     """
     Construit un dataset local pour themes_vers_images :
@@ -78,7 +78,6 @@ def build_local_dataset(
                     pbar.update(1)
                     continue
 
-                # Copier l'image dans ton dossier local
                 dst_poster = os.path.join(out_posters_dir, f"{imdb_id}.jpg")
                 if not os.path.exists(dst_poster):
                     shutil.copy2(src_poster, dst_poster)

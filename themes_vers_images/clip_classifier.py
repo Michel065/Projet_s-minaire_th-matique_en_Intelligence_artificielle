@@ -6,7 +6,7 @@ from PIL import Image
 import torch
 from transformers import CLIPProcessor, CLIPModel
 
-from utils import GENRES  # très important: même ordre que ton CSV
+from utils import GENRES  
 
 
 MODEL_ID = "openai/clip-vit-base-patch32"
@@ -54,7 +54,7 @@ def predict_themes_from_image(image_path: str) -> np.ndarray:
     image = Image.open(image_path).convert("RGB")
 
     # Construire une description textuelle par genre
-    # ex: "movie poster of an action film"
+
     text_prompts: List[str] = [
         f"movie poster of a {genre.lower()} film" for genre in GENRES
     ]
@@ -73,8 +73,7 @@ def predict_themes_from_image(image_path: str) -> np.ndarray:
 
     scores = logits_per_image.detach().cpu().numpy().astype(np.float32)
 
-    # Optionnel: remettre sur [0, 1] pour être plus lisible
-    # (ce n'est pas obligatoire pour l'évaluation relative)
+
     min_val = float(scores.min())
     max_val = float(scores.max())
     if max_val > min_val:
