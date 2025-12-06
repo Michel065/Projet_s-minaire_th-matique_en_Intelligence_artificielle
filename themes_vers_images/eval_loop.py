@@ -8,17 +8,12 @@ from utils import GENRES, load_theme_vectors, normalize_vectors
 from generate_baseline import predict_posters_from_themes
 
 
-# ==========================
-# 1. À COMPLÉTER AVEC LE MODÈLE DU BINÔME
-# ==========================
+
 
 from clip_classifier import predict_themes_from_image
 
 
 
-# ==========================
-# 2. MÉTRIQUES
-# ==========================
 
 def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
     a = a.astype(np.float32)
@@ -48,9 +43,7 @@ def topk_overlap(a: np.ndarray, b: np.ndarray, k: int = 3) -> float:
     return len(inter) / float(k)
 
 
-# ==========================
-# 3. BOUCLE D'ÉVALUATION
-# ==========================
+
 
 def vector_to_theme_string(vec: np.ndarray, max_themes: int = 4, threshold: float = 0.5) -> str:
     """
@@ -62,17 +55,17 @@ def vector_to_theme_string(vec: np.ndarray, max_themes: int = 4, threshold: floa
     - Si rien ne passe le seuil, on prend simplement les max_themes meilleurs.
     """
     vec = np.asarray(vec)
-    # indices triés par score décroissant
+  
     sorted_idx = np.argsort(vec)[::-1]
 
-    # thèmes au-dessus du seuil
+
     above = [i for i in sorted_idx if vec[i] >= threshold]
 
     if len(above) == 0:
-        # si aucun thème ne dépasse le seuil, on prend les max_themes premiers
+     
         top_idx = sorted_idx[:max_themes]
     else:
-        # on limite à max_themes parmi ceux au-dessus du seuil
+
         top_idx = above[:max_themes]
 
     labels = [GENRES[i] for i in top_idx]
@@ -132,10 +125,10 @@ def eval_loop(
             imdb_id = ids[idx]
             y_true = X_eval[idx]
 
-            # 1) vecteur -> chaîne de thèmes
+     
             theme_str = vector_to_theme_string(y_true, max_themes=4, threshold=0.5)
 
-            # 2) chaîne de thèmes -> affiche existante (baseline)
+        
             posters = predict_posters_from_themes(theme_str, top_k=1)
             if not posters:
                 print(f"[eval_loop] Aucun poster trouvé pour imdbId={imdb_id}, skip.")
@@ -143,7 +136,7 @@ def eval_loop(
 
             gen_poster_path = posters[0]
 
-            # 3) affiche -> vecteur de thèmes prédit par le modèle du binôme
+          
             try:
                 y_pred = predict_themes_from_image(gen_poster_path)
             except NotImplementedError as e:
@@ -156,10 +149,9 @@ def eval_loop(
 
             y_pred = np.asarray(y_pred, dtype=np.float32)
             if use_normalized:
-                # on normalise aussi y_pred si on a normalisé y_true
+              
                 y_pred = y_pred / (np.linalg.norm(y_pred) + 1e-8)
 
-            # 4) métriques
             cos_sim = cosine_similarity(y_true, y_pred)
             top3 = topk_overlap(y_true, y_pred, k=3)
             top5 = topk_overlap(y_true, y_pred, k=5)
@@ -176,7 +168,7 @@ def eval_loop(
         if f_out is not None and not f_out.closed:
             f_out.close()
 
-    # Agrégation simple
+   
     if all_results:
         cos_vals = [r[1] for r in all_results]
         top3_vals = [r[2] for r in all_results]
@@ -191,9 +183,7 @@ def eval_loop(
         print("[eval_loop] Aucun résultat exploitable.")
 
 
-# ==========================
-# 4. POINT D'ENTRÉE CLI
-# ==========================
+
 
 def main():
     parser = argparse.ArgumentParser(description="Boucle d'évaluation analyse <-> génération (baseline).")
@@ -240,3 +230,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
