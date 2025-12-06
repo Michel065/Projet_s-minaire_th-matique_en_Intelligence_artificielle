@@ -13,7 +13,7 @@ GENRES: List[str] = [
     "News", "Adult", "Reality-TV", "Game-Show"
 ]
 
-# Pour parse_user_themes : permet d'accepter des noms FR/EN
+
 FR_TO_EN_GENRE = {
     "animation": "Animation",
     "aventure": "Adventure",
@@ -102,7 +102,7 @@ def normalize_vectors(X: np.ndarray) -> np.ndarray:
     """
     # norme sur l'axe des features
     norms = np.linalg.norm(X, axis=1, keepdims=True)
-    # éviter division par zéro
+   
     norms[norms == 0] = 1.0
     X_norm = X / norms
     return X_norm
@@ -127,7 +127,7 @@ def parse_user_themes(input_str: str, binary: bool = True) -> np.ndarray:
     if not input_str:
         return vec
 
-    # on découpe selon virgules, points-virgules, barres, etc.
+ 
     raw_parts = re_split_themes(input_str)
 
     for raw in raw_parts:
@@ -139,9 +139,7 @@ def parse_user_themes(input_str: str, binary: bool = True) -> np.ndarray:
         if key in FR_TO_EN_GENRE:
             canonical = FR_TO_EN_GENRE[key]
         else:
-            # essayer de matcher directement un nom de GENRES
-            # (par ex. "Drama", "Horror" écrits correctement)
-            # on cherche en insensible à la casse
+            
             canonical = None
             for g in GENRES:
                 if key == g.lower():
@@ -150,7 +148,7 @@ def parse_user_themes(input_str: str, binary: bool = True) -> np.ndarray:
 
         if canonical and canonical in GENRES:
             idx = GENRES.index(canonical)
-            vec[idx] = 1.0 if binary else 1.0  # pour l'instant même chose
+            vec[idx] = 1.0 if binary else 1.0  
 
     return vec
 
@@ -161,7 +159,7 @@ def re_split_themes(input_str: str) -> List[str]:
     ',', ';', '|'
     """
     import re
-    # on remplace les différents séparateurs par une virgule
+
     tmp = re.sub(r"[;|]", ",", input_str)
     parts = [p for p in tmp.split(",")]
     return parts
