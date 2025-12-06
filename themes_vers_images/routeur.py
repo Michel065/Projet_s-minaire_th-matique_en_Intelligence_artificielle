@@ -18,7 +18,7 @@ def predict_posters_from_themes(theme_str: str, top_k_baseline: int = 5):
     preg = GENERATED_EXAMPLES.get(key)
     print("[PREG]", key, "->", preg, "exists:", (os.path.exists(preg) if preg else None))
     if preg and os.path.exists(preg):
-        return "pregenerated", [preg], "Image IA pré-générée."   # << LISTE !
+        return "pregenerated", [preg], "Image IA pré-générée."  
 
     # --- Baseline ---
     vec = parse_user_themes(theme_str, binary=True)
@@ -30,9 +30,10 @@ def predict_posters_from_themes(theme_str: str, top_k_baseline: int = 5):
     else:
         paths = res
 
-    if isinstance(paths, str):              # << string -> liste
+    if isinstance(paths, str):             
         paths = [paths]
     elif paths and isinstance(paths[0], tuple):
         paths = [t[-1] for t in paths]
 
     return "baseline", paths, "Affiches existantes les plus proches (baseline)."
+
