@@ -12,7 +12,7 @@ def normalize_theme_key(theme_str: str) -> str:
     return ",".join(toks)
 
 def themes_to_prompt_from_string(theme_str: str) -> str:
-    # Même logique que ta version “améliorée” (résumé ici)
+    
     vec = parse_user_themes(theme_str, binary=True)
     active = [GENRES[i].lower() for i,v in enumerate(vec) if v > 0][:4]
     genres_str = ", ".join(active) if active else "cinematic"
@@ -42,7 +42,7 @@ def themes_to_prompt_from_string(theme_str: str) -> str:
     return prompt
 
 def _safe_filename(theme_key: str) -> str:
-    # ex: "action,horreur,drame" -> "action_horreur_drame_<hash>.png"
+
     slug = theme_key.replace(",", "_")
     h = hashlib.sha1(theme_key.encode("utf-8")).hexdigest()[:8]
     return f"poster_{slug}_{h}.png"
@@ -83,15 +83,15 @@ def generate_via_hf(
     }
 
     os.makedirs(output_dir, exist_ok=True)
-    fname = _safe_filename(theme_key_for_name or f"{time.time()}")  # fallback si pas de clé
+    fname = _safe_filename(theme_key_for_name or f"{time.time()}") 
     out_path = os.path.join(output_dir, fname)
 
     resp = requests.post(url, headers=headers, json=payload, timeout=timeout_s)
     if resp.status_code >= 400:
-        # Messages utiles pour 401/403/503
+        
         raise requests.HTTPError(f"HF API error {resp.status_code}: {resp.text[:300]}")
 
-    # L'API renvoie du binaire image
     with open(out_path, "wb") as f:
         f.write(resp.content)
     return out_path
+
