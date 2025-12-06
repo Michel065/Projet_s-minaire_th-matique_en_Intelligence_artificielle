@@ -5,3 +5,4 @@ __pycache__/
 MoviePosters*/
 res*/
 .DS_Store
+themes_vers_images/.env
