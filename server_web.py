@@ -3,6 +3,8 @@ from flask import Flask, send_from_directory, jsonify, request
 BASE_DIR = os.path.dirname(__file__)
 WEB_DIR = os.path.join(BASE_DIR, "web")
 sys.path.append(os.path.join(BASE_DIR, "image_vers_themes"))
+from clip_demo import clip_bp
+
 
 import tool as tl
 
@@ -32,6 +34,10 @@ def home():
 @app.route("/entrainement_ivt")
 def page_entrainement_ivt():
     return send_from_directory(WEB_DIR, "entrainement_ivt.html")
+
+
+# Routes CLIP (thèmes <-> affiches)
+app.register_blueprint(clip_bp, url_prefix="/clip_demo")
 
 # =========================
 #  API : PREPROCESS / DATA
