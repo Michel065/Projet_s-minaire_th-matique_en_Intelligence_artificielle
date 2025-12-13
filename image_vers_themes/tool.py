@@ -445,3 +445,28 @@ def prediction(model, use_per_class, images_pour_test, source_json):
         })
 
     return preds_list, seuils_optimaux
+
+def comparaison_repartition_train_avant_apres_boost(source):
+    data = bd.load_json(source)
+
+    liste_des_genres = data["liste_des_genres"]
+
+    Y_avant = np.asarray(data["train_Y"])
+    Y_boost = np.asarray(data["train_Y_boost"])
+
+    repart_avant = ts.calculs_repartition_themes_vecteur(
+        Y_avant, liste_des_genres, print_data=False,
+        titre="Répartition train_Y AVANT boost"
+    )
+
+    if len(Y_boost) > 0:
+        Y_apres = np.concatenate([Y_avant, Y_boost], axis=0)
+    else:
+        Y_apres = Y_avant
+
+    repart_apres = ts.calculs_repartition_themes_vecteur(
+        Y_apres, liste_des_genres, print_data=False,
+        titre="Répartition train_Y APRES boost"
+    )
+
+    ts.comparaison_repartition(repart_avant, repart_apres, liste_des_genres)
