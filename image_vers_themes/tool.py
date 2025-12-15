@@ -324,7 +324,6 @@ def evaluation(model, dataset_test, source="../data_filtrer.json"):
     seuils = data.get("seuils_optimaux", None)
     if seuils is None:
         raise ValueError("ERREUR : aucun seuil trouvé dans le json ")
-
     resume_global, stats_par_genre = t.evalution_du_model_avec_seuils(model,dataset_test,liste_des_genres,seuils)
     print("Évaluation finale terminée.")
 

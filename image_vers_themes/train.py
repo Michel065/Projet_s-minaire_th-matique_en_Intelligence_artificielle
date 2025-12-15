@@ -172,7 +172,17 @@ def evalution_du_model_avec_seuils(model, dataset_test, liste_des_genres, seuils
     y_pred = np.concatenate(y_pred_list, axis=0)  # (N, K)
 
     _, nb_classes = y_true.shape
-    seuils = np.asarray(seuils).reshape(1, -1)
+    
+    seuils = np.asarray([seuils[g] for g in liste_des_genres],dtype=np.float32).reshape(1, -1)
+
+
+    print("DEBUG DIMENSIONS :")
+    print("nb_classes (Y):", nb_classes)
+    print("len(liste_des_genres):", len(liste_des_genres))
+    print("seuils.shape:", seuils.shape)
+    print("liste_des_genres:", liste_des_genres)
+    print("seuils (vecteur):", seuils)
+
     assert nb_classes == len(liste_des_genres) == seuils.shape[1], "Dimensions Y / genres / seuils incohérentes."
 
     #on utilise nos seuils cette fois
@@ -196,10 +206,7 @@ def evalution_du_model_avec_seuils(model, dataset_test, liste_des_genres, seuils
     #F1 macro et stats
     f1_par_classe = []
     stats_par_genre = {}
-
-    print("\n____STATISTIQUES_PAR_GENRE____")
-    print(f"{'Genre':<20} {'Seuil':>7} {'F1':>7} {'Prec':>7} {'Rec':>7} {'Support':>8}")
-
+    lignes_stats = []
     for j, genre in enumerate(liste_des_genres):
         yt = y_true[:, j]
         yp = y_pred_bin[:, j]
@@ -231,7 +238,28 @@ def evalution_du_model_avec_seuils(model, dataset_test, liste_des_genres, seuils
             "support": support_pos,
         }
 
-        print(f"{genre:<20} {seuils[0,j]:7.3f} {f1:7.3f} {precision:7.3f} {recall:7.3f} {support_pos:8d}")
+        #ajouté tard raison pour la quel stats_par_genre non suppriméé trop long a changer 
+        lignes_stats.append({
+            "genre": genre,
+            "seuil": float(seuils[0, j]),
+            "precision": float(precision),
+            "recall": float(recall),
+            "f1": float(f1),
+            "support": support_pos,
+        })
+
+    lignes_stats.sort(key=lambda x: x["f1"], reverse=True)
+    print("\n____STATISTIQUES_PAR_GENRE____")
+    print(f"{'Genre':<20} {'Seuil':>7} {'F1':>7} {'Prec':>7} {'Rec':>7} {'Support':>8}")
+    for s in lignes_stats:
+        print(
+            f"{s['genre']:<20} "
+            f"{s['seuil']:7.3f} "
+            f"{s['f1']:7.3f} "
+            f"{s['precision']:7.3f} "
+            f"{s['recall']:7.3f} "
+            f"{s['support']:8d}"
+        )
 
     f1_macro = float(np.mean(f1_par_classe)) if len(f1_par_classe) > 0 else 0.0
 

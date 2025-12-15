@@ -13,8 +13,6 @@ img_dir  = "../MoviePosters/"
 json_filter_path = "../data_filtrer.json"
 img_dir_boost  = "../MoviePosters_boost"
 
-model = tr.load_model("model_pvt", "../resultat_pvt/")
-
 def corriger_chemins(liste_X, json_path):
     base_dir = os.path.dirname(os.path.abspath(json_path))
     return [os.path.normpath(os.path.join(base_dir, x)) for x in liste_X]
@@ -31,9 +29,8 @@ model = tr.load_model("model_pvt", "../resultat_pvt/")
 
 dataset_test = generer_dataset_test_only(json_filter_path, batch_size=64)
 
-results = tr.evalution_du_model(model, dataset_test)
-
-print("resume_global:", results)
+resume_global, stats_par_genre = t.evaluation(model,dataset_test)
+print("resume_global:",resume_global)
 """
 #si on veux init l'augmentation de data
 #ed.construire_data_boost(json_filter_path,img_dir_boost)
